@@ -139,16 +139,3 @@ Warning: aggressive threshold lowering will increase false declines; 3-tier syst
 | `Constraints met: False` | Validation distribution temporarily infeasible | Relax one constraint temporarily, check for data drift |
 | `DeviceInfo dropped` | Feature store schema mismatch | Add `expected_cols` validation in `build_full_store()` |
 | AUC ~0.50 | Passed binary predictions to ranking metrics | Pass `y_pred_proba` (floats), not `y_pred` (0/1) |
-
-## 🤖 AI / Developer Handoff Prompt
-
-```
-CONTEXT: Production fraud pipeline (LightGBM ranking + 3-tier decision). Hard constraints: recall_total ≥ 0.60, review_rate ≤ 0.20, false_decline ≤ 0.02. Ranking ≠ Decision. Zero-breaking-change API.
-RULES: 
-1. NEVER compute AUC on binary predictions. Only use raw probabilities.
-2. NEVER collapse 3-tier output to binary. Preserve {-1, 0, 1} or {BLOCK, REVIEW, APPROVE}.
-3. Preserve all existing function signatures and return dicts.
-4. If constraints infeasible, log warning + deploy best feasible pair. Never silently violate.
-5. Always separate ranking_metrics (model quality) from system_metrics (business impact).
-TASK: [INSERT REQUEST]
-```
