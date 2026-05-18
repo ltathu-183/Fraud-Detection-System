@@ -8,14 +8,23 @@ Production-grade fraud detection pipeline that strictly separates model ranking 
 
 ```mermaid
 graph LR
-    A[Data<br/>transaction + identity] --> B[Temporal Split<br/>70/15/15]
-    B --> C[Feature Engineering]
-    C --> D[Frequency Encoding<br/>train only]
-    D --> E[Temporal Features]
-    E --> F[LightGBM Training]
-    F --> G[Raw Probabilities]
-    G --> H[Constraint Optimizer<br/>percentile grid + hard filter]
-    H --> I[3-Tier Decision Engine<br/>APPROVE/REVIEW/BLOCK]
+    subgraph Data Prep
+        A[Data<br/>transaction + identity] --> B[Temporal Split<br/>70/15/15]
+    end
+
+    subgraph Feature Engineering
+        B --> C[Feature Engineering]
+        C --> D[Frequency Encoding<br/>train only]
+        D --> E[Temporal Features]
+    end
+
+    subgraph Modeling & Decision
+        E --> F[LightGBM Training]
+        F --> G[Raw Probabilities]
+        G --> H[Constraint Optimizer<br/>percentile grid]
+        H --> I[3-Tier Decision Engine<br/>APPROVE/REVIEW/BLOCK]
+    end
+
     I --> J[Deployment]
 
     style A fill:#e1f5ff
