@@ -27,16 +27,16 @@ graph LR
 
     I --> J[Deployment]
 
-    style A fill:#e1f5ff
-    style B fill:#fff4e1
-    style C fill:#e1f5ff
-    style D fill:#fff4e1
-    style E fill:#e1f5ff
-    style F fill:#fff4e1
-    style G fill:#ffe1f5
-    style H fill:#e1ffe1
-    style I fill:#ffe1e1
-    style J fill:#e1e1ff
+    style A fill:#e1f5ff,stroke:#333,stroke-width:1px,color:#000
+    style B fill:#fff4e1,stroke:#333,stroke-width:1px,color:#000
+    style C fill:#e1f5ff,stroke:#333,stroke-width:1px,color:#000
+    style D fill:#fff4e1,stroke:#333,stroke-width:1px,color:#000
+    style E fill:#e1f5ff,stroke:#333,stroke-width:1px,color:#000
+    style F fill:#fff4e1,stroke:#333,stroke-width:1px,color:#000
+    style G fill:#ffe1f5,stroke:#333,stroke-width:1px,color:#000
+    style H fill:#e1ffe1,stroke:#333,stroke-width:1px,color:#000
+    style I fill:#ffe1e1,stroke:#333,stroke-width:1px,color:#000
+    style J fill:#e1e1ff,stroke:#333,stroke-width:1px,color:#000
 ```
 
 Calibration is isolated and opt-in (not used in decision layer by default). Feature store handles historical aggregation for low-latency inference. Evaluation pipeline explicitly separates `ranking_metrics` (model quality: ROC-AUC, PR-AUC) from `system_metrics` (business impact: recall_total, review_rate, false_decline_rate).
