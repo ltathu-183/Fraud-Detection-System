@@ -52,6 +52,7 @@ Calibration is isolated and opt-in (not used in decision layer by default). Feat
 ## 🚀 Quick Start
 
 ```bash
+dvc pull #fetch data
 uv run python -m src.pipeline.ieee_cis_pipeline
 ```
 

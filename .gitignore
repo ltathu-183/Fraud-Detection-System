@@ -71,3 +71,9 @@ uv.lock
 # OS
 .DS_Store
 Thumbs.db
+
+# Data files (exclude large datasets)
+data/raw/*.csv
+data/processed/*.csv
+data/processed/*.parquet
+data/processed/*.pkl
