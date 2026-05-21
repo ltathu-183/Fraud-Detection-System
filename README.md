@@ -1,10 +1,10 @@
 # IEEE-CIS Fraud Detection Production Pipeline
 
-## 🎯 Overview
+## Overview
 
 Production-grade fraud detection pipeline that strictly separates model ranking from business decision logic. Core principles: (1) Ranking ≠ Decision — AUC computed on probabilities only, business metrics evaluated on thresholded decisions; (2) Hard-constrained optimizer — enforces strict business limits (recall, review rate, false decline) via percentile grid search with hard filtering, not heuristics; (3) Zero-breaking-change API — backward compatible signatures, safe for incremental updates without breaking existing deployments.
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 graph LR
@@ -41,7 +41,7 @@ graph LR
 
 Calibration is isolated and opt-in (not used in decision layer by default). Feature store handles historical aggregation for low-latency inference. Evaluation pipeline explicitly separates `ranking_metrics` (model quality: ROC-AUC, PR-AUC) from `system_metrics` (business impact: recall_total, review_rate, false_decline_rate).
 
-## 📊 Baseline Performance
+## Baseline Performance
 
 | Layer | Metric | Value | Note |
 |---|---|---|---|
@@ -54,11 +54,11 @@ Calibration is isolated and opt-in (not used in decision layer by default). Feat
 
 `fraud_capture_rate` (40%) and `recall_total` (78%) differ by design: auto-block targets precision to minimize false declines, while review captures uncertain fraud. The gap is intentional to limit customer friction while maintaining high total fraud capture.
 
-## ⚙️ Decision System & Constraint Optimization
+## Decision System & Constraint Optimization
 
 3-tier mapping: `prob >= t_block → BLOCK`, `t_review <= prob < t_block → REVIEW`, else `APPROVE`. Optimizer searches percentile grid (5th-95th percentiles), HARD filters out pairs violating constraints, selects highest recall → lowest review rate as tiebreaker. Default constraints: `min_recall ≥ 0.60`, `max_review_rate ≤ 0.20`, `max_false_decline_rate ≤ 0.02`. Fallback behavior: if no pair satisfies constraints, logs warning and deploys best feasible pair (never silently violates limits).
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 dvc pull #fetch data
@@ -71,16 +71,16 @@ Expected console output:
 ================================================================================
 IEEE-CIS FRAUD DETECTION - PRODUCTION PIPELINE
 ================================================================================
-2026-05-18 20:19:19,371 | INFO     | 🚀 PIPELINE START
+2026-05-18 20:19:19,371 | INFO     | PIPELINE START
 2026-05-18 20:19:45,705 | INFO     | Split: train=413378, val=88581, test=44291
 ...
-2026-05-18 20:22:10,921 | INFO     | 📊 Ranking (val): ROC-AUC=0.8853, PR-AUC=0.4808
-2026-05-18 20:22:24,128 | INFO     | ⚙️ Thresholds: t_review=0.3213, t_block=0.7184
-2026-05-18 20:22:24,128 | INFO     | 🎯 System (test): recall_total=0.7838, review_rate=0.1924
+2026-05-18 20:22:10,921 | INFO     | Ranking (val): ROC-AUC=0.8853, PR-AUC=0.4808
+2026-05-18 20:22:24,128 | INFO     | Thresholds: t_review=0.3213, t_block=0.7184
+2026-05-18 20:22:24,128 | INFO     | System (test): recall_total=0.7838, review_rate=0.1924
 ...
-✅ Pipeline completed successfully.
+Pipeline completed successfully.
 
-📈 Ranking Metrics (Model Quality):
+Ranking Metrics (Model Quality):
    roc_auc: 0.8853
    pr_auc: 0.4808
    mean_prob: 0.2714
@@ -88,7 +88,7 @@ IEEE-CIS FRAUD DETECTION - PRODUCTION PIPELINE
    min_prob: 0.0233
    max_prob: 0.9942
 
-🎯 System Metrics (Business Impact):
+System Metrics (Business Impact):
    approve_rate: 0.7794
    review_rate: 0.1924
    decline_rate: 0.0282
@@ -101,14 +101,14 @@ IEEE-CIS FRAUD DETECTION - PRODUCTION PIPELINE
    recall_total: 0.7838
    utility_score: 5472.7359
 
-🔑 Deployed Thresholds:
+Deployed Thresholds:
    Review: ≥0.3213
    Block:  ≥0.7184
 ```
 
 No CLI flags required for default run; paths default to `data/raw/train_*.csv`.
 
-## 🔧 Configuration & Tuning
+## Configuration & Tuning
 
 Adjust constraints in `FraudDecisionSystem.fit()`:
 
@@ -132,7 +132,7 @@ Trade-off table:
 
 Warning: aggressive threshold lowering will increase false declines; 3-tier system exists to avoid this trade-off by routing uncertain cases to manual review.
 
-## 🛡️ Production Deployment Checklist
+## Production Deployment Checklist
 
 - Export configuration: `thresholds`, `feature_cols`, `baseline_metrics` to version-controlled artifact
 - Run shadow mode for 48 hours: compare pipeline decisions against legacy system on live traffic
@@ -140,7 +140,7 @@ Warning: aggressive threshold lowering will increase false declines; 3-tier syst
 - Set up monitoring alerts for drift: PSI on feature distributions, AUC degradation > 0.02
 - Schedule monthly retrain with temporal split to maintain performance
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 | Error | Cause | Fix |
 |---|---|---|
