@@ -1,150 +1,118 @@
-# IEEE-CIS Fraud Detection Production Pipeline
+# IEEE-CIS Fraud Detection — corrected portfolio pipeline
 
-## Overview
+This repository supports one execution path:
 
-Production-grade fraud detection pipeline that strictly separates model ranking from business decision logic. Core principles: (1) Ranking ≠ Decision — AUC computed on probabilities only, business metrics evaluated on thresholded decisions; (2) Hard-constrained optimizer — enforces strict business limits (recall, review rate, false decline) via percentile grid search with hard filtering, not heuristics; (3) Zero-breaking-change API — backward compatible signatures, safe for incremental updates without breaking existing deployments.
-
-## Architecture
-
-```mermaid
-graph LR
-    subgraph Data Prep
-        A[Data<br/>transaction + identity] --> B[Temporal Split<br/>70/15/15]
-    end
-
-    subgraph Feature Engineering
-        B --> C[Feature Engineering]
-        C --> D[Frequency Encoding<br/>train only]
-        D --> E[Temporal Features]
-    end
-
-    subgraph Modeling & Decision
-        E --> F[LightGBM Training]
-        F --> G[Raw Probabilities]
-        G --> H[Constraint Optimizer<br/>percentile grid]
-        H --> I[3-Tier Decision Engine<br/>APPROVE/REVIEW/BLOCK]
-    end
-
-    I --> J[Deployment]
-
-    style A fill:#e1f5ff,stroke:#333,stroke-width:1px,color:#000
-    style B fill:#fff4e1,stroke:#333,stroke-width:1px,color:#000
-    style C fill:#e1f5ff,stroke:#333,stroke-width:1px,color:#000
-    style D fill:#fff4e1,stroke:#333,stroke-width:1px,color:#000
-    style E fill:#e1f5ff,stroke:#333,stroke-width:1px,color:#000
-    style F fill:#fff4e1,stroke:#333,stroke-width:1px,color:#000
-    style G fill:#ffe1f5,stroke:#333,stroke-width:1px,color:#000
-    style H fill:#e1ffe1,stroke:#333,stroke-width:1px,color:#000
-    style I fill:#ffe1e1,stroke:#333,stroke-width:1px,color:#000
-    style J fill:#e1e1ff,stroke:#333,stroke-width:1px,color:#000
+```text
+train_transaction.csv + train_identity.csv
+  -> stable chronological order and immutable row/split IDs
+  -> 70% train / 15% model validation / 7.5% policy / 7.5% final test
+  -> train-fitted frequency encoding
+  -> point-in-time behavioural features
+  -> weighted LightGBM with validation-only early stopping
+  -> hard-constrained policy selection on the policy split
+  -> one frozen final-test evaluation
 ```
 
-Calibration is isolated and opt-in (not used in decision layer by default). Feature store handles historical aggregation for low-latency inference. Evaluation pipeline explicitly separates `ranking_metrics` (model quality: ROC-AUC, PR-AUC) from `system_metrics` (business impact: recall_total, review_rate, false_decline_rate).
+The active entry point is `src.pipeline.ieee_cis_pipeline`. The tiered pipeline,
+rules engine, feature store, calibration module, adversarial validation, and
+submission script are legacy/experimental and are not used by this path.
 
-## Baseline Performance
+## Correctness contract
 
-| Layer | Metric | Value | Note |
-|---|---|---|---|
-| Ranking | ROC-AUC | 0.8853 | Probability ranking quality |
-| Ranking | PR-AUC | 0.4808 | Expected at ~3.6% fraud rate |
-| Decision | recall_total | 0.784 | Fraud caught via BLOCK + REVIEW |
-| Decision | fraud_capture_rate | 0.402 | Fraud AUTO-BLOCKED only |
-| Decision | review_rate | 0.192 | Manual queue load |
-| Decision | false_decline_rate | 0.018 | Good users incorrectly blocked |
+- `_internal_row_id` and `_split_id` are assigned before feature work. Splits
+  are recovered only by `_split_id`, never by position after a transformation.
+- The active raw transaction schema is `TransactionAmt`, `ProductCD`, card,
+  address, distance, email-domain, and C/D/M feature families, plus IEEE identity
+  fields. The high-dimensional `V*` transaction family is intentionally excluded
+  so the documented in-memory path fits on a developer machine.
+- Categorical frequencies and all preprocessing statistics are fitted on train.
+- Behavioural windows contain `[t-W, t)`: the current transaction, same-time
+  peers, and future transactions are excluded. Missing entities have no history.
+- No fraud-label-derived feature is active because label maturity is not modeled.
+- LightGBM receives native `NaN`; only infinities are converted to `NaN`.
+- `scale_pos_weight = N_negative_train / N_positive_train`.
+- Validation is used only for model selection/early stopping. Policy thresholds
+  are selected only on the policy split. The test split is opened only after a
+  feasible policy has been frozen.
+- Policy constraints have one source in `src/pipeline/config.py`: fraud triage
+  coverage at least 80%, overall review rate at most 20%, and legitimate
+  auto-decline rate at most 2%. Infeasibility stops evaluation; constraints are
+  never silently relaxed.
 
-`fraud_capture_rate` (40%) and `recall_total` (78%) differ by design: auto-block targets precision to minimize false declines, while review captures uncertain fraud. The gap is intentional to limit customer friction while maintaining high total fraud capture.
+`fraud_review_coverage` reports routing, not successful fraud detection.
+`fraud_triage_coverage` is auto-declined fraud plus reviewed fraud and likewise
+does not assume review effectiveness. Ranking ROC-AUC and average precision are
+reported separately from operational policy metrics.
 
-## Decision System & Constraint Optimization
+## Data and canonical run
 
-3-tier mapping: `prob >= t_block → BLOCK`, `t_review <= prob < t_block → REVIEW`, else `APPROVE`. Optimizer searches percentile grid (5th-95th percentiles), HARD filters out pairs violating constraints, selects highest recall → lowest review rate as tiebreaker. Default constraints: `min_recall ≥ 0.60`, `max_review_rate ≤ 0.20`, `max_false_decline_rate ≤ 0.02`. Fallback behavior: if no pair satisfies constraints, logs warning and deploys best feasible pair (never silently violates limits).
+The tracked `.dvc` files are pointers only. The previous `.dvc/config` referenced
+the placeholder `/path/to/dvc/remote/storage`; no reconstructable remote or
+credentials are available. Obtain the IEEE-CIS data under its applicable terms
+and place these files locally:
 
-## Quick Start
+```text
+data/raw/train_transaction.csv
+data/raw/train_identity.csv
+```
+
+Then run:
 
 ```bash
-dvc pull #fetch data
-uv run python -m src.pipeline.ieee_cis_pipeline
+python -m pytest
+python -m src.pipeline.ieee_cis_pipeline
 ```
 
-Expected console output:
+Corrected results are written to `artifacts/corrected_results.json`. This checkout
+contains the required raw CSVs. Run the command above to reproduce the committed
+post-audit report. All performance numbers previously shown in this README were
+removed as invalid; only numbers emitted by this command are valid.
 
-```
-================================================================================
-IEEE-CIS FRAUD DETECTION - PRODUCTION PIPELINE
-================================================================================
-2026-05-18 20:19:19,371 | INFO     | PIPELINE START
-2026-05-18 20:19:45,705 | INFO     | Split: train=413378, val=88581, test=44291
-...
-2026-05-18 20:22:10,921 | INFO     | Ranking (val): ROC-AUC=0.8853, PR-AUC=0.4808
-2026-05-18 20:22:24,128 | INFO     | Thresholds: t_review=0.3213, t_block=0.7184
-2026-05-18 20:22:24,128 | INFO     | System (test): recall_total=0.7838, review_rate=0.1924
-...
-Pipeline completed successfully.
+## Corrected frozen-test results
 
-Ranking Metrics (Model Quality):
-   roc_auc: 0.8853
-   pr_auc: 0.4808
-   mean_prob: 0.2714
-   std_prob: 0.2068
-   min_prob: 0.0233
-   max_prob: 0.9942
+Generated on the supplied raw data by the canonical command above:
 
-System Metrics (Business Impact):
-   approve_rate: 0.7794
-   review_rate: 0.1924
-   decline_rate: 0.0282
-   fraud_capture_rate: 0.4019
-   false_decline_rate: 0.0182
-   review_legit_rate: 0.1874
-   fraud_in_approve: 248
-   fraud_in_review: 438
-   fraud_in_decline: 461
-   recall_total: 0.7838
-   utility_score: 5472.7359
+| Model | ROC-AUC | PR-AUC | Notes |
+|---|---:|---:|---|
+| Dummy prior | 0.5000 | 0.0391 | Same frozen test |
+| Linear logistic-loss SGD | 0.7972 | 0.2121 | Train-only imputation/scaling |
+| LightGBM, no temporal features | 0.8977 | 0.5117 | Ablation; same split/protocol |
+| LightGBM, active feature set | 0.9010 | 0.5051 | Corrected final model |
 
-Deployed Thresholds:
-   Review: ≥0.3213
-   Block:  ≥0.7184
-```
+The active policy met its pre-specified constraints on the final test: 80.32%
+fraud triage coverage, 15.25% overall review rate, and 1.80% legitimate
+auto-decline rate. It auto-declined 47.84% of fraud and routed 32.49% of fraud
+to review. Review routing is not claimed as confirmed fraud detection.
 
-No CLI flags required for default run; paths default to `data/raw/train_*.csv`.
+The ablation improves PR-AUC slightly while reducing ROC-AUC. This is not used
+to revise the selected model after testing; it is reported as a post-audit
+diagnostic, so the active configuration remains the pre-specified feature set.
+Because that diagnostic compared model variants on the test split, this test
+split must not be used for any future model-selection decision. A newly reserved
+chronological holdout is required before promoting a research change.
 
-## Configuration & Tuning
+## Research track — not a new performance claim
 
-Adjust constraints in `FraudDecisionSystem.fit()`:
+The next experiments are validation-only until a new holdout is reserved:
 
-```python
-decision_system = FraudDecisionSystem()
-threshold_info = decision_system.fit(
-    y_val, val_probs,
-    target_recall=0.80,
-    max_review_rate=0.20,
-    max_false_decline_rate=0.02
-)
-```
+1. Point-in-time behavioural features: card/device/email/address novelty and
+   entity age. They use only strictly earlier transactions and preserve raw
+   entity identifiers until feature generation is complete.
+2. Capacity evaluation: report `Recall@5%`, `Recall@10%`, `Recall@15%` review
+   capacity and their precision counterparts, alongside PR-AUC. These measure
+   ranking under realistic review limits without selecting a threshold on test.
+3. Temporal stability: use rolling chronological validation before considering
+   calibration, cost assumptions, or more complex relational models.
 
-Trade-off table:
+No cost-sensitive policy is claimed yet because the data contains no real bank
+loss, customer-friction, or review-cost inputs. No target/fraud-history feature
+is active because label-maturity timing is unknown.
 
-| Goal | Parameter Change | Expected Impact |
-|---|---|---|
-| Catch more fraud | `min_recall=0.70` | ↑ recall_total, ↑ review_rate |
-| Reduce ops load | `max_review_rate=0.15` | ↓ review_rate, ↓ recall_total |
-| Protect customers | `max_false_decline_rate=0.015` | ↓ FD rate, ↓ auto-block |
+## Limitations
 
-Warning: aggressive threshold lowering will increase false declines; 3-tier system exists to avoid this trade-off by routing uncertain cases to manual review.
-
-## Production Deployment Checklist
-
-- Export configuration: `thresholds`, `feature_cols`, `baseline_metrics` to version-controlled artifact
-- Run shadow mode for 48 hours: compare pipeline decisions against legacy system on live traffic
-- Verify constraint adherence on live traffic: monitor `recall_total`, `review_rate`, `false_decline_rate` in production
-- Set up monitoring alerts for drift: PSI on feature distributions, AUC degradation > 0.02
-- Schedule monthly retrain with temporal split to maintain performance
-
-## Troubleshooting
-
-| Error | Cause | Fix |
-|---|---|---|
-| `feature_names missing` | DataFrame columns lost during concat | Ensure `X_train.columns = feature_cols` before training |
-| `Constraints met: False` | Validation distribution temporarily infeasible | Relax one constraint temporarily, check for data drift |
-| `DeviceInfo dropped` | Feature store schema mismatch | Add `expected_cols` validation in `build_full_store()` |
-| AUC ~0.50 | Passed binary predictions to ranking metrics | Pass `y_pred_proba` (floats), not `y_pred` (0/1) |
+This is an in-memory pandas portfolio pipeline, not a serving system. It has no
+real bank cost data, measured reviewer effectiveness, production API, operational
+monitoring evidence, or scalability validation. Fraud labels may be delayed, but
+label maturity is not modeled. IEEE-CIS results may not generalize to another
+merchant, geography, time period, or bank. Weighted LightGBM scores are not
+assumed to be calibrated; calibration is optional/unused in the supported path.

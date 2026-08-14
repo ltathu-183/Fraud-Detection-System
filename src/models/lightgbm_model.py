@@ -102,8 +102,6 @@ class LightGBMFraudModel:
             # Imbalance handling
             # -----------------------------------------------------------------
 
-            "scale_pos_weight": 27.5,
-
             # -----------------------------------------------------------------
             # Reproducibility
             # -----------------------------------------------------------------
@@ -444,6 +442,9 @@ class LightGBMFraudModel:
             raise ValueError(
                 "Model not trained."
             )
+
+        if isinstance(X, pd.DataFrame) and list(X.columns) != list(self.feature_names):
+            raise ValueError("Prediction feature schema/order differs from training")
 
         raw_preds = self.model.predict(
             X,

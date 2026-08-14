@@ -1,193 +1,107 @@
-import pandas as pd
-import numpy as np
-import logging
-from typing import List, Dict, Optional
+"""Point-in-time behavioural features for the supported pipeline.
 
-logger = logging.getLogger(__name__)
+All history windows use ``[t-W, t)``. Events at the same timestamp are not
+visible to one another, making output independent of their input ordering.
+No target-derived feature is created.
+"""
+
+import numpy as np
+import pandas as pd
 
 
 class TemporalFeatureEngineer:
-    """
-    Production-grade temporal feature engine:
+    def __init__(self, time_col="TransactionDT", amount_col="TransactionAmt"):
+        self.time_col = time_col
+        self.amount_col = amount_col
 
-    Guarantees:
-    - No pandas rolling
-    - No fragmentation warnings
-    - No NaN leakage (controlled fill)
-    - Deterministic outputs
-    - O(N) per entity group
-    """
+    @staticmethod
+    def _require_identity(df):
+        if "_internal_row_id" not in df:
+            raise ValueError("_internal_row_id is required before feature engineering")
+        if df["_internal_row_id"].isna().any() or not df["_internal_row_id"].is_unique:
+            raise ValueError("Internal row identifiers must be unique and non-null")
 
-    def __init__(self):
-        self.time_col = "TransactionDT"
-        self.amount_col = "TransactionAmt"
+    def _entity_features(self, source, entity, windows):
+        feature_arrays = {
+            f"{entity}_{window}s_count": np.zeros(len(source), dtype=np.int32)
+            for window in windows
+        }
+        feature_arrays.update({
+            f"{entity}_{window}s_amount_mean": np.full(len(source), np.nan, dtype=np.float32)
+            for window in windows
+        })
+        time_since_last = np.full(len(source), np.nan, dtype=np.float32)
+        row_positions = pd.Series(np.arange(len(source)), index=source.index)
+        valid = source[entity].notna()
+        ordered = source.loc[valid].sort_values(
+            [entity, self.time_col, "_internal_row_id"], kind="mergesort"
+        )
+        for _, group in ordered.groupby(entity, sort=False, observed=True):
+            times = group[self.time_col].to_numpy(dtype=np.int64)
+            amounts = group[self.amount_col].to_numpy(dtype=float)
+            positions = row_positions.loc[group.index].to_numpy()
+            cumulative_amount = np.r_[0.0, np.nan_to_num(amounts, nan=0.0).cumsum()]
+            # ``right`` points to the first event at the current timestamp, so
+            # every same-time event is excluded from its own history.
+            right = np.searchsorted(times, times, side="left")
+            previous = right - 1
+            has_previous = previous >= 0
+            time_since_last[positions[has_previous]] = (
+                times[has_previous] - times[previous[has_previous]]
+            )
+            for window in windows:
+                left = np.searchsorted(times, times - window, side="left")
+                count = right - left
+                feature_arrays[f"{entity}_{window}s_count"][positions] = count
+                nonempty = count > 0
+                feature_arrays[f"{entity}_{window}s_amount_mean"][positions[nonempty]] = (
+                    (cumulative_amount[right[nonempty]] - cumulative_amount[left[nonempty]])
+                    / count[nonempty]
+                )
+        feature_arrays[f"{entity}_time_since_last"] = time_since_last
+        return pd.DataFrame(feature_arrays, index=source.index)
 
-    # ======================================================
-    # CORE PREP
-    # ======================================================
+    def _novelty_features(self, source, entity):
+        """First-seen indicators and entity age, using only events before t."""
+        is_new = np.zeros(len(source), dtype=np.int8)
+        age = np.full(len(source), np.nan, dtype=np.float32)
+        positions = pd.Series(np.arange(len(source)), index=source.index)
+        valid = source[entity].notna()
+        ordered = source.loc[valid].sort_values(
+            [entity, self.time_col, "_internal_row_id"], kind="mergesort"
+        )
+        for _, group in ordered.groupby(entity, sort=False, observed=True):
+            group_positions = positions.loc[group.index].to_numpy()
+            times = group[self.time_col].to_numpy(dtype=np.int64)
+            first_time = times[0]
+            # Same-time peers have no strictly earlier evidence, so they all
+            # receive the same first-seen status rather than leaking ordering.
+            is_new[group_positions[times == first_time]] = 1
+            age[group_positions] = times - first_time
+        return pd.DataFrame({
+            f"{entity}_is_new": is_new,
+            f"{entity}_time_since_first_seen": age,
+        }, index=source.index)
 
-    def _prep(self, df, entity):
-        df = df.copy()
-        df["_ts"] = df[self.time_col].astype(np.int64)
-
-        df = df.sort_values([entity, "_ts"])
-        return df
-
-    # ======================================================
-    # SLIDING WINDOW COUNT (SAFE)
-    # ======================================================
-
-    def _rolling_count(self, df, entity, window_sec):
-        out = np.zeros(len(df), dtype=np.int32)
-
-        for _, g in df.groupby(entity, sort=False):
-            idx = g.index.values
-            t = g["_ts"].values
-
-            left = 0
-
-            for i in range(len(t)):
-                while t[i] - t[left] > window_sec:
-                    left += 1
-                out[idx[i]] = i - left
-
-        return out
-
-    # ======================================================
-    # SLIDING WINDOW STATS (SAFE)
-    # ======================================================
-
-    def _rolling_stats(self, df, entity, window_sec):
-        mean = np.zeros(len(df), dtype=np.float32)
-        std = np.zeros(len(df), dtype=np.float32)
-        mx = np.zeros(len(df), dtype=np.float32)
-        mn = np.zeros(len(df), dtype=np.float32)
-
-        for _, g in df.groupby(entity, sort=False):
-            idx = g.index.values
-            t = g["_ts"].values
-            x = g[self.amount_col].values
-
-            left = 0
-
-            for i in range(len(t)):
-                while t[i] - t[left] > window_sec:
-                    left += 1
-
-                window = x[left:i]
-
-                if len(window) == 0:
-                    mean[idx[i]] = 0
-                    std[idx[i]] = 0
-                    mx[idx[i]] = 0
-                    mn[idx[i]] = 0
-                else:
-                    mean[idx[i]] = window.mean()
-                    std[idx[i]] = window.std()
-                    mx[idx[i]] = window.max()
-                    mn[idx[i]] = window.min()
-
-        return mean, std, mx, mn
-
-    # ======================================================
-    # UNIQUE COUNT (SAFE APPROX)
-    # ======================================================
-
-    def _unique_count(self, df, entity, target):
-        out = np.zeros(len(df), dtype=np.int32)
-
-        for _, g in df.groupby(entity, sort=False):
-            seen = set()
-            idx = g.index.values
-
-            for i, val in enumerate(g[target].fillna("__NA__").values):
-                if val not in seen:
-                    seen.add(val)
-                out[idx[i]] = len(seen)
-
-        return out
-
-    # ======================================================
-    # FEATURE BUILDERS
-    # ======================================================
-
-    def create_velocity(self, df, entity, windows=(3600, 86400, 7*86400)):
-        df = self._prep(df, entity)
-
-        feats = {}
-
-        for w in windows:
-            feats[f"{entity}_cnt_{w}s"] = self._rolling_count(df, entity, w)
-
-        return pd.concat([df, pd.DataFrame(feats, index=df.index)], axis=1)
-
-    def create_amount_stats(self, df, entity, windows=(86400, 7*86400, 30*86400)):
-        df = self._prep(df, entity)
-
-        feats = {}
-
-        for w in windows:
-            m, s, mx, mn = self._rolling_stats(df, entity, w)
-
-            feats[f"{entity}_amt_mean_{w}s"] = m
-            feats[f"{entity}_amt_std_{w}s"] = s
-            feats[f"{entity}_amt_max_{w}s"] = mx
-            feats[f"{entity}_amt_min_{w}s"] = mn
-
-        return pd.concat([df, pd.DataFrame(feats, index=df.index)], axis=1)
-
-    def create_time_since_last(self, df, entity):
-        df = self._prep(df, entity)
-
-        out = np.zeros(len(df), dtype=np.float32)
-
-        for _, g in df.groupby(entity, sort=False):
-            idx = g.index.values
-            t = g["_ts"].values
-
-            prev = np.diff(t, prepend=t[0])
-            out[idx] = prev
-
-        df["time_since_last_tx"] = out
-        return df
-
-    def create_unique_counts(self, df, entity, target):
-        df = self._prep(df, entity)
-
-        out = self._unique_count(df, entity, target)
-
-        df[f"unique_{target}_count"] = out
-        return df
-
-    # ======================================================
-    # MAIN PIPELINE
-    # ======================================================
-
-    def engineer_all_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        logger.info("TEMPORAL START")
-
-        df = df.copy()
-
-        # ensure timestamp
-        df[self.time_col] = df[self.time_col].astype(np.int64)
-
-        # core entities
-        entities = ["card1", "uid"]
-
-        for e in entities:
-            if e in df.columns:
-                df = self.create_velocity(df, e)
-                df = self.create_amount_stats(df, e)
-                df = self.create_time_since_last(df, e)
-
-        # device cross features
-        if "DeviceInfo" in df.columns:
-            df = self.create_unique_counts(df, "card1", "DeviceInfo")
-
-        # FINAL CLEANUP (critical)
-        df = df.replace([np.inf, -np.inf], 0)
-        df = df.fillna(0)
-
-        logger.info("TEMPORAL DONE")
-
-        return df
+    def engineer_all_features(
+        self,
+        df,
+        velocity_entities=("card1",),
+        novelty_entities=("card1", "DeviceInfo", "P_emaildomain", "addr1"),
+        windows=(3600, 86400, 604800),
+    ):
+        self._require_identity(df)
+        if self.time_col not in df or self.amount_col not in df:
+            raise ValueError("TransactionDT and TransactionAmt are required")
+        original_ids = df["_internal_row_id"].copy()
+        output = df.copy()
+        for entity in velocity_entities:
+            if entity in output:
+                output = output.join(self._entity_features(df, entity, windows))
+        for entity in novelty_entities:
+            if entity in output:
+                output = output.join(self._novelty_features(df, entity))
+        output = output.loc[df.index]
+        if len(output) != len(df) or not output["_internal_row_id"].equals(original_ids):
+            raise AssertionError("Feature engineering changed row identity or order")
+        return output.replace([np.inf, -np.inf], np.nan)

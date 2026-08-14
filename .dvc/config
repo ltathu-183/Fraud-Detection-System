@@ -1,4 +1,2 @@
 [core]
-    remote = myremote
-['remote "myremote"']
-    url = /path/to/dvc/remote/storage
+# No usable project remote is known. Configure a local/private remote explicitly.

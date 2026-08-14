@@ -33,6 +33,99 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def optimize_policy_thresholds(y_true, probabilities, config):
+    """Select a deterministic three-tier policy under hard constraints.
+
+    The objective among feasible policies is maximum auto-decline fraud recall,
+    then auto-decline precision, then minimum review rate. No fallback is
+    deployed. Triage coverage includes review routing only; it is not assumed
+    to be confirmed fraud capture.
+    """
+    y = np.asarray(y_true, dtype=int)
+    p = np.asarray(probabilities, dtype=float)
+    validate_evaluation_inputs(y, p, "policy optimization")
+    if set(np.unique(y)) != {0, 1}:
+        raise ValueError("Policy optimization requires both classes")
+    grid = np.unique(np.r_[0.0, np.quantile(p, np.linspace(0, 1, config.threshold_grid_size)), 1.0])
+    feasible = []
+    evaluated = 0
+    for low in grid:
+        for high in grid[grid >= low]:
+            evaluated += 1
+            metrics = evaluate_policy(y, p, float(low), float(high))
+            if (metrics["fraud_triage_coverage"] >= config.min_recall
+                    and metrics["overall_review_rate"] <= config.max_review_rate
+                    and metrics["legitimate_auto_decline_rate"] <= config.max_false_decline_rate):
+                precision = metrics["auto_decline_precision"]
+                feasible.append((
+                    metrics["fraud_auto_decline_recall"], precision,
+                    -metrics["overall_review_rate"], float(high), float(low), metrics
+                ))
+    if not feasible:
+        return {
+            "feasible": False, "low_threshold": None, "high_threshold": None,
+            "constraints": vars(config), "policies_evaluated": evaluated,
+            "number_feasible": 0, "objective_value": None,
+        }
+    best = max(feasible, key=lambda item: item[:5])
+    result = dict(best[5])
+    result.update({
+        "feasible": True, "low_threshold": best[4], "high_threshold": best[3],
+        "constraints": vars(config), "policies_evaluated": evaluated,
+        "number_feasible": len(feasible), "objective_value": best[0],
+    })
+    return result
+
+
+def evaluate_policy(y_true, probabilities, low_threshold, high_threshold):
+    """Unambiguous operational metrics; REVIEW is not assumed to catch fraud."""
+    if not 0 <= low_threshold <= high_threshold <= 1:
+        raise ValueError("Thresholds must satisfy 0 <= low <= high <= 1")
+    y = np.asarray(y_true, dtype=int)
+    p = np.asarray(probabilities, dtype=float)
+    approve, decline = p < low_threshold, p >= high_threshold
+    review = ~(approve | decline)
+    fraud, legitimate = y == 1, y == 0
+    nf, nl, n = fraud.sum(), legitimate.sum(), len(y)
+    if nf == 0 or nl == 0:
+        raise ValueError("Policy evaluation requires both classes")
+    fd, fr, fa = (fraud & decline).sum(), (fraud & review).sum(), (fraud & approve).sum()
+    ld, lr = (legitimate & decline).sum(), (legitimate & review).sum()
+    return {
+        "fraud_auto_decline_recall": float(fd / nf),
+        "fraud_review_coverage": float(fr / nf),
+        "fraud_approved_rate": float(fa / nf),
+        "legitimate_auto_decline_rate": float(ld / nl),
+        "legitimate_review_rate": float(lr / nl),
+        "overall_review_rate": float(review.sum() / n),
+        "fraud_triage_coverage": float((fd + fr) / nf),
+        "auto_decline_precision": float(fd / decline.sum()) if decline.any() else 0.0,
+        "review_precision": float(fr / review.sum()) if review.any() else 0.0,
+        "total_transactions": int(n), "total_fraud": int(nf), "total_legitimate": int(nl),
+        "approve_count": int(approve.sum()), "review_count": int(review.sum()),
+        "decline_count": int(decline.sum()),
+    }
+
+
+def capacity_metrics(y_true, probabilities, review_rates=(0.05, 0.10, 0.15)):
+    """Ranking quality at fixed operational review capacity, without tuning."""
+    y = np.asarray(y_true, dtype=int)
+    p = np.asarray(probabilities, dtype=float)
+    if len(y) != len(p) or set(np.unique(y)) != {0, 1}:
+        raise ValueError("Capacity metrics require aligned binary labels and probabilities")
+    order = np.argsort(-p, kind="mergesort")
+    total_fraud = int(y.sum())
+    metrics = {}
+    for rate in review_rates:
+        if not 0 < rate <= 1:
+            raise ValueError("Review rates must be in (0, 1]")
+        k = max(1, int(np.ceil(len(y) * rate)))
+        selected = y[order[:k]]
+        metrics[f"recall_at_{rate:.0%}_review"] = float(selected.sum() / total_fraud)
+        metrics[f"precision_at_{rate:.0%}_review"] = float(selected.mean())
+    return metrics
+
+
 # =========================================================
 # EXISTING FUNCTIONS (UNCHANGED - PRESERVE COMPATIBILITY)
 # =========================================================
