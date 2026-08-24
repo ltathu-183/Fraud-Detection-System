@@ -1,0 +1,1174 @@
+{
+  "status": "PRE-FINAL DEVELOPMENT-ONLY ROLLING ROBUSTNESS",
+  "canonical_frozen_manifest": "artifacts/evaluation/canonical_final_frozen.json",
+  "frozen_test_start_row": 546249,
+  "final_test_rows_used": 0,
+  "design": {
+    "windows": 4,
+    "safety_targets_predeclared": [
+      0.8,
+      0.82,
+      0.85
+    ],
+    "model_design": "fixed canonical LightGBM; no new features/models/hyperparameter search"
+  },
+  "windows": [
+    {
+      "window": 1,
+      "boundaries": {
+        "train": {
+          "start_row_inclusive": 0,
+          "end_row_exclusive": 280509,
+          "rows": 280509,
+          "fraud_cases": 9392,
+          "fraud_prevalence": 0.03348199166515156,
+          "start_transaction_dt": 86400,
+          "end_transaction_dt": 6824403,
+          "start_transaction_id": 2987000,
+          "end_transaction_id": 3267508
+        },
+        "validation": {
+          "start_row_inclusive": 280509,
+          "end_row_exclusive": 324799,
+          "rows": 44290,
+          "fraud_cases": 1609,
+          "fraud_prevalence": 0.0363287423797697,
+          "start_transaction_dt": 6824478,
+          "end_transaction_dt": 8022319,
+          "start_transaction_id": 3267509,
+          "end_transaction_id": 3311798
+        },
+        "policy": {
+          "start_row_inclusive": 324799,
+          "end_row_exclusive": 369089,
+          "rows": 44290,
+          "fraud_cases": 1509,
+          "fraud_prevalence": 0.03407089636486792,
+          "start_transaction_dt": 8022323,
+          "end_transaction_dt": 9169134,
+          "start_transaction_id": 3311799,
+          "end_transaction_id": 3356088
+        },
+        "evaluation": {
+          "start_row_inclusive": 369089,
+          "end_row_exclusive": 413379,
+          "rows": 44290,
+          "fraud_cases": 2028,
+          "fraud_prevalence": 0.045789117182208176,
+          "start_transaction_dt": 9169152,
+          "end_transaction_dt": 10438003,
+          "start_transaction_id": 3356089,
+          "end_transaction_id": 3400378
+        }
+      },
+      "preprocessing_fit_end_exclusive": 280509,
+      "categorical_columns_fit_on_train": [
+        "DeviceInfo",
+        "DeviceType",
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M8",
+        "M9",
+        "P_emaildomain",
+        "ProductCD",
+        "R_emaildomain",
+        "card4",
+        "card6",
+        "id_12",
+        "id_15",
+        "id_16",
+        "id_23",
+        "id_27",
+        "id_28",
+        "id_29",
+        "id_30",
+        "id_31",
+        "id_33",
+        "id_34",
+        "id_35",
+        "id_36",
+        "id_37",
+        "id_38"
+      ],
+      "model_metrics": {
+        "roc_auc": 0.9073548033274538,
+        "pr_auc": 0.548536773934467,
+        "mean_prob": 0.18376442334609477,
+        "std_prob": 0.2098789625993595,
+        "min_prob": 0.00040641512946423017,
+        "max_prob": 0.9983540853078233
+      },
+      "score_distribution": {
+        "mean": 0.18376442334609477,
+        "std": 0.2098789625993595,
+        "min": 0.00040641512946423017,
+        "max": 0.9983540853078233
+      },
+      "canonical_policy": {
+        "window": 1,
+        "feasible_on_policy": true,
+        "selection_target": 0.8,
+        "low_threshold": 0.27156661348137406,
+        "high_threshold": 0.7013268931200307,
+        "policy_window_metrics": {
+          "fraud_triage_coverage": 0.8031809145129225,
+          "overall_review_rate": 0.1699932264619553,
+          "legitimate_auto_decline_rate": 0.015591033402678759
+        },
+        "evaluation_metrics": {
+          "fraud_auto_decline_recall": 0.5226824457593688,
+          "fraud_review_coverage": 0.3155818540433925,
+          "fraud_approved_rate": 0.16173570019723865,
+          "legitimate_auto_decline_rate": 0.02207656996829303,
+          "legitimate_review_rate": 0.16049879324215607,
+          "overall_review_rate": 0.1675999096861594,
+          "fraud_triage_coverage": 0.8382642998027613,
+          "auto_decline_precision": 0.5318615153035625,
+          "review_precision": 0.08621851003637343,
+          "total_transactions": 44290,
+          "total_fraud": 2028,
+          "total_legitimate": 42262,
+          "approve_count": 34874,
+          "review_count": 7423,
+          "decline_count": 1993
+        },
+        "canonical_constraint_outcome": {
+          "all_constraints_satisfied": false,
+          "passes": {
+            "triage_shortfall": true,
+            "review_excess": true,
+            "legitimate_decline_excess": false
+          },
+          "violation_magnitude": {
+            "triage_shortfall": 0.0,
+            "review_excess": 0.0,
+            "legitimate_decline_excess": 0.0020765699682930294
+          }
+        },
+        "thresholds_frozen_before_evaluation": true
+      },
+      "safety_margins": {
+        "80": {
+          "window": 1,
+          "feasible_on_policy": true,
+          "selection_target": 0.8,
+          "low_threshold": 0.27156661348137406,
+          "high_threshold": 0.7013268931200307,
+          "policy_window_metrics": {
+            "fraud_triage_coverage": 0.8031809145129225,
+            "overall_review_rate": 0.1699932264619553,
+            "legitimate_auto_decline_rate": 0.015591033402678759
+          },
+          "evaluation_metrics": {
+            "fraud_auto_decline_recall": 0.5226824457593688,
+            "fraud_review_coverage": 0.3155818540433925,
+            "fraud_approved_rate": 0.16173570019723865,
+            "legitimate_auto_decline_rate": 0.02207656996829303,
+            "legitimate_review_rate": 0.16049879324215607,
+            "overall_review_rate": 0.1675999096861594,
+            "fraud_triage_coverage": 0.8382642998027613,
+            "auto_decline_precision": 0.5318615153035625,
+            "review_precision": 0.08621851003637343,
+            "total_transactions": 44290,
+            "total_fraud": 2028,
+            "total_legitimate": 42262,
+            "approve_count": 34874,
+            "review_count": 7423,
+            "decline_count": 1993
+          },
+          "canonical_constraint_outcome": {
+            "all_constraints_satisfied": false,
+            "passes": {
+              "triage_shortfall": true,
+              "review_excess": true,
+              "legitimate_decline_excess": false
+            },
+            "violation_magnitude": {
+              "triage_shortfall": 0.0,
+              "review_excess": 0.0,
+              "legitimate_decline_excess": 0.0020765699682930294
+            }
+          },
+          "thresholds_frozen_before_evaluation": true
+        },
+        "82": {
+          "window": 1,
+          "feasible_on_policy": true,
+          "selection_target": 0.82,
+          "low_threshold": 0.2501727621346209,
+          "high_threshold": 0.7013268931200307,
+          "policy_window_metrics": {
+            "fraud_triage_coverage": 0.8243870112657389,
+            "overall_review_rate": 0.1899977421539851,
+            "legitimate_auto_decline_rate": 0.015591033402678759
+          },
+          "evaluation_metrics": {
+            "fraud_auto_decline_recall": 0.5226824457593688,
+            "fraud_review_coverage": 0.33136094674556216,
+            "fraud_approved_rate": 0.14595660749506903,
+            "legitimate_auto_decline_rate": 0.02207656996829303,
+            "legitimate_review_rate": 0.17994889025602195,
+            "overall_review_rate": 0.18688191465342063,
+            "fraud_triage_coverage": 0.854043392504931,
+            "auto_decline_precision": 0.5318615153035625,
+            "review_precision": 0.08118883653497644,
+            "total_transactions": 44290,
+            "total_fraud": 2028,
+            "total_legitimate": 42262,
+            "approve_count": 34020,
+            "review_count": 8277,
+            "decline_count": 1993
+          },
+          "canonical_constraint_outcome": {
+            "all_constraints_satisfied": false,
+            "passes": {
+              "triage_shortfall": true,
+              "review_excess": true,
+              "legitimate_decline_excess": false
+            },
+            "violation_magnitude": {
+              "triage_shortfall": 0.0,
+              "review_excess": 0.0,
+              "legitimate_decline_excess": 0.0020765699682930294
+            }
+          },
+          "thresholds_frozen_before_evaluation": true
+        },
+        "85": {
+          "feasible_on_policy": false
+        }
+      },
+      "drift": {
+        "score_psi_policy_to_evaluation": 0.003240531799415943,
+        "feature_psi_policy_to_evaluation": {
+          "TransactionAmt": 0.005640644896678441,
+          "card1": 0.004701587060598894,
+          "dist1": 0.0005755065375835193,
+          "C1": 0.0007762049425025817,
+          "D1": 0.0003107691873011283
+        }
+      },
+      "final_test_rows_used": 0
+    },
+    {
+      "window": 2,
+      "boundaries": {
+        "train": {
+          "start_row_inclusive": 0,
+          "end_row_exclusive": 324799,
+          "rows": 324799,
+          "fraud_cases": 11001,
+          "fraud_prevalence": 0.033870178171730825,
+          "start_transaction_dt": 86400,
+          "end_transaction_dt": 8022319,
+          "start_transaction_id": 2987000,
+          "end_transaction_id": 3311798
+        },
+        "validation": {
+          "start_row_inclusive": 324799,
+          "end_row_exclusive": 369089,
+          "rows": 44290,
+          "fraud_cases": 1509,
+          "fraud_prevalence": 0.03407089636486792,
+          "start_transaction_dt": 8022323,
+          "end_transaction_dt": 9169134,
+          "start_transaction_id": 3311799,
+          "end_transaction_id": 3356088
+        },
+        "policy": {
+          "start_row_inclusive": 369089,
+          "end_row_exclusive": 413379,
+          "rows": 44290,
+          "fraud_cases": 2028,
+          "fraud_prevalence": 0.045789117182208176,
+          "start_transaction_dt": 9169152,
+          "end_transaction_dt": 10438003,
+          "start_transaction_id": 3356089,
+          "end_transaction_id": 3400378
+        },
+        "evaluation": {
+          "start_row_inclusive": 413379,
+          "end_row_exclusive": 457669,
+          "rows": 44290,
+          "fraud_cases": 1593,
+          "fraud_prevalence": 0.03596748701738541,
+          "start_transaction_dt": 10438017,
+          "end_transaction_dt": 11725712,
+          "start_transaction_id": 3400379,
+          "end_transaction_id": 3444668
+        }
+      },
+      "preprocessing_fit_end_exclusive": 324799,
+      "categorical_columns_fit_on_train": [
+        "DeviceInfo",
+        "DeviceType",
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M8",
+        "M9",
+        "P_emaildomain",
+        "ProductCD",
+        "R_emaildomain",
+        "card4",
+        "card6",
+        "id_12",
+        "id_15",
+        "id_16",
+        "id_23",
+        "id_27",
+        "id_28",
+        "id_29",
+        "id_30",
+        "id_31",
+        "id_33",
+        "id_34",
+        "id_35",
+        "id_36",
+        "id_37",
+        "id_38"
+      ],
+      "model_metrics": {
+        "roc_auc": 0.9046024262323745,
+        "pr_auc": 0.5496329992449291,
+        "mean_prob": 0.1432549835784431,
+        "std_prob": 0.17669908955086205,
+        "min_prob": 0.0014491955579096797,
+        "max_prob": 0.99658899399813
+      },
+      "score_distribution": {
+        "mean": 0.1432549835784431,
+        "std": 0.17669908955086205,
+        "min": 0.0014491955579096797,
+        "max": 0.99658899399813
+      },
+      "canonical_policy": {
+        "window": 2,
+        "feasible_on_policy": true,
+        "selection_target": 0.8,
+        "low_threshold": 0.28204254024002895,
+        "high_threshold": 0.6578000444948996,
+        "policy_window_metrics": {
+          "fraud_triage_coverage": 0.8012820512820513,
+          "overall_review_rate": 0.1200045156920298,
+          "legitimate_auto_decline_rate": 0.0177937627182812
+        },
+        "evaluation_metrics": {
+          "fraud_auto_decline_recall": 0.4839924670433145,
+          "fraud_review_coverage": 0.2787193973634652,
+          "fraud_approved_rate": 0.23728813559322035,
+          "legitimate_auto_decline_rate": 0.01210857905707661,
+          "legitimate_review_rate": 0.10583881771553036,
+          "overall_review_rate": 0.11205689771957553,
+          "fraud_triage_coverage": 0.7627118644067796,
+          "auto_decline_precision": 0.5986024844720497,
+          "review_precision": 0.08946201894015716,
+          "total_transactions": 44290,
+          "total_fraud": 1593,
+          "total_legitimate": 42697,
+          "approve_count": 38039,
+          "review_count": 4963,
+          "decline_count": 1288
+        },
+        "canonical_constraint_outcome": {
+          "all_constraints_satisfied": false,
+          "passes": {
+            "triage_shortfall": false,
+            "review_excess": true,
+            "legitimate_decline_excess": true
+          },
+          "violation_magnitude": {
+            "triage_shortfall": 0.03728813559322042,
+            "review_excess": 0.0,
+            "legitimate_decline_excess": 0.0
+          }
+        },
+        "thresholds_frozen_before_evaluation": true
+      },
+      "safety_margins": {
+        "80": {
+          "window": 2,
+          "feasible_on_policy": true,
+          "selection_target": 0.8,
+          "low_threshold": 0.28204254024002895,
+          "high_threshold": 0.6578000444948996,
+          "policy_window_metrics": {
+            "fraud_triage_coverage": 0.8012820512820513,
+            "overall_review_rate": 0.1200045156920298,
+            "legitimate_auto_decline_rate": 0.0177937627182812
+          },
+          "evaluation_metrics": {
+            "fraud_auto_decline_recall": 0.4839924670433145,
+            "fraud_review_coverage": 0.2787193973634652,
+            "fraud_approved_rate": 0.23728813559322035,
+            "legitimate_auto_decline_rate": 0.01210857905707661,
+            "legitimate_review_rate": 0.10583881771553036,
+            "overall_review_rate": 0.11205689771957553,
+            "fraud_triage_coverage": 0.7627118644067796,
+            "auto_decline_precision": 0.5986024844720497,
+            "review_precision": 0.08946201894015716,
+            "total_transactions": 44290,
+            "total_fraud": 1593,
+            "total_legitimate": 42697,
+            "approve_count": 38039,
+            "review_count": 4963,
+            "decline_count": 1288
+          },
+          "canonical_constraint_outcome": {
+            "all_constraints_satisfied": false,
+            "passes": {
+              "triage_shortfall": false,
+              "review_excess": true,
+              "legitimate_decline_excess": true
+            },
+            "violation_magnitude": {
+              "triage_shortfall": 0.03728813559322042,
+              "review_excess": 0.0,
+              "legitimate_decline_excess": 0.0
+            }
+          },
+          "thresholds_frozen_before_evaluation": true
+        },
+        "82": {
+          "window": 2,
+          "feasible_on_policy": true,
+          "selection_target": 0.82,
+          "low_threshold": 0.2416876733079049,
+          "high_threshold": 0.6578000444948996,
+          "policy_window_metrics": {
+            "fraud_triage_coverage": 0.8308678500986193,
+            "overall_review_rate": 0.14998871076992548,
+            "legitimate_auto_decline_rate": 0.0177937627182812
+          },
+          "evaluation_metrics": {
+            "fraud_auto_decline_recall": 0.4839924670433145,
+            "fraud_review_coverage": 0.31324544883866917,
+            "fraud_approved_rate": 0.20276208411801633,
+            "legitimate_auto_decline_rate": 0.01210857905707661,
+            "legitimate_review_rate": 0.13879195259620114,
+            "overall_review_rate": 0.1450666064574396,
+            "fraud_triage_coverage": 0.7972379158819837,
+            "auto_decline_precision": 0.5986024844720497,
+            "review_precision": 0.07766536964980544,
+            "total_transactions": 44290,
+            "total_fraud": 1593,
+            "total_legitimate": 42697,
+            "approve_count": 36577,
+            "review_count": 6425,
+            "decline_count": 1288
+          },
+          "canonical_constraint_outcome": {
+            "all_constraints_satisfied": false,
+            "passes": {
+              "triage_shortfall": false,
+              "review_excess": true,
+              "legitimate_decline_excess": true
+            },
+            "violation_magnitude": {
+              "triage_shortfall": 0.0027620841180163724,
+              "review_excess": 0.0,
+              "legitimate_decline_excess": 0.0
+            }
+          },
+          "thresholds_frozen_before_evaluation": true
+        },
+        "85": {
+          "window": 2,
+          "feasible_on_policy": true,
+          "selection_target": 0.85,
+          "low_threshold": 0.2115506039798601,
+          "high_threshold": 0.6578000444948996,
+          "policy_window_metrics": {
+            "fraud_triage_coverage": 0.8550295857988166,
+            "overall_review_rate": 0.1799954843079702,
+            "legitimate_auto_decline_rate": 0.0177937627182812
+          },
+          "evaluation_metrics": {
+            "fraud_auto_decline_recall": 0.4839924670433145,
+            "fraud_review_coverage": 0.34526051475204017,
+            "fraud_approved_rate": 0.17074701820464533,
+            "legitimate_auto_decline_rate": 0.01210857905707661,
+            "legitimate_review_rate": 0.16947326510059255,
+            "overall_review_rate": 0.17579589072025287,
+            "fraud_triage_coverage": 0.8292529817953547,
+            "auto_decline_precision": 0.5986024844720497,
+            "review_precision": 0.07063960955561263,
+            "total_transactions": 44290,
+            "total_fraud": 1593,
+            "total_legitimate": 42697,
+            "approve_count": 35216,
+            "review_count": 7786,
+            "decline_count": 1288
+          },
+          "canonical_constraint_outcome": {
+            "all_constraints_satisfied": true,
+            "passes": {
+              "triage_shortfall": true,
+              "review_excess": true,
+              "legitimate_decline_excess": true
+            },
+            "violation_magnitude": {
+              "triage_shortfall": 0.0,
+              "review_excess": 0.0,
+              "legitimate_decline_excess": 0.0
+            }
+          },
+          "thresholds_frozen_before_evaluation": true
+        }
+      },
+      "drift": {
+        "score_psi_policy_to_evaluation": 0.0035954239063963186,
+        "feature_psi_policy_to_evaluation": {
+          "TransactionAmt": 0.002890777596099972,
+          "card1": 0.008882379265454158,
+          "dist1": 0.001772438739639268,
+          "C1": 0.0036534625417636094,
+          "D1": 0.017486650476628934
+        }
+      },
+      "final_test_rows_used": 0
+    },
+    {
+      "window": 3,
+      "boundaries": {
+        "train": {
+          "start_row_inclusive": 0,
+          "end_row_exclusive": 369089,
+          "rows": 369089,
+          "fraud_cases": 12510,
+          "fraud_prevalence": 0.03389426398510928,
+          "start_transaction_dt": 86400,
+          "end_transaction_dt": 9169134,
+          "start_transaction_id": 2987000,
+          "end_transaction_id": 3356088
+        },
+        "validation": {
+          "start_row_inclusive": 369089,
+          "end_row_exclusive": 413379,
+          "rows": 44290,
+          "fraud_cases": 2028,
+          "fraud_prevalence": 0.045789117182208176,
+          "start_transaction_dt": 9169152,
+          "end_transaction_dt": 10438003,
+          "start_transaction_id": 3356089,
+          "end_transaction_id": 3400378
+        },
+        "policy": {
+          "start_row_inclusive": 413379,
+          "end_row_exclusive": 457669,
+          "rows": 44290,
+          "fraud_cases": 1593,
+          "fraud_prevalence": 0.03596748701738541,
+          "start_transaction_dt": 10438017,
+          "end_transaction_dt": 11725712,
+          "start_transaction_id": 3400379,
+          "end_transaction_id": 3444668
+        },
+        "evaluation": {
+          "start_row_inclusive": 457669,
+          "end_row_exclusive": 501959,
+          "rows": 44290,
+          "fraud_cases": 1449,
+          "fraud_prevalence": 0.03271618875592685,
+          "start_transaction_dt": 11725727,
+          "end_transaction_dt": 13151840,
+          "start_transaction_id": 3444669,
+          "end_transaction_id": 3488958
+        }
+      },
+      "preprocessing_fit_end_exclusive": 369089,
+      "categorical_columns_fit_on_train": [
+        "DeviceInfo",
+        "DeviceType",
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M8",
+        "M9",
+        "P_emaildomain",
+        "ProductCD",
+        "R_emaildomain",
+        "card4",
+        "card6",
+        "id_12",
+        "id_15",
+        "id_16",
+        "id_23",
+        "id_27",
+        "id_28",
+        "id_29",
+        "id_30",
+        "id_31",
+        "id_33",
+        "id_34",
+        "id_35",
+        "id_36",
+        "id_37",
+        "id_38"
+      ],
+      "model_metrics": {
+        "roc_auc": 0.8822988220893316,
+        "pr_auc": 0.4239876648288366,
+        "mean_prob": 0.20734833770698713,
+        "std_prob": 0.21715612414683613,
+        "min_prob": 0.00037408516637096195,
+        "max_prob": 0.9996281930381231
+      },
+      "score_distribution": {
+        "mean": 0.20734833770698713,
+        "std": 0.21715612414683613,
+        "min": 0.00037408516637096195,
+        "max": 0.9996281930381231
+      },
+      "canonical_policy": {
+        "window": 3,
+        "feasible_on_policy": true,
+        "selection_target": 0.8,
+        "low_threshold": 0.4042427378488321,
+        "high_threshold": 0.8147449803156518,
+        "policy_window_metrics": {
+          "fraud_triage_coverage": 0.8035153797865662,
+          "overall_review_rate": 0.1300067735380447,
+          "legitimate_auto_decline_rate": 0.01224910415251657
+        },
+        "evaluation_metrics": {
+          "fraud_auto_decline_recall": 0.3961352657004831,
+          "fraud_review_coverage": 0.3333333333333333,
+          "fraud_approved_rate": 0.27053140096618356,
+          "legitimate_auto_decline_rate": 0.014028617445904624,
+          "legitimate_review_rate": 0.12635092551527743,
+          "overall_review_rate": 0.13312260103860918,
+          "fraud_triage_coverage": 0.7294685990338164,
+          "auto_decline_precision": 0.48851063829787233,
+          "review_precision": 0.08191994572591588,
+          "total_transactions": 44290,
+          "total_fraud": 1449,
+          "total_legitimate": 42841,
+          "approve_count": 37219,
+          "review_count": 5896,
+          "decline_count": 1175
+        },
+        "canonical_constraint_outcome": {
+          "all_constraints_satisfied": false,
+          "passes": {
+            "triage_shortfall": false,
+            "review_excess": true,
+            "legitimate_decline_excess": true
+          },
+          "violation_magnitude": {
+            "triage_shortfall": 0.0705314009661836,
+            "review_excess": 0.0,
+            "legitimate_decline_excess": 0.0
+          }
+        },
+        "thresholds_frozen_before_evaluation": true
+      },
+      "safety_margins": {
+        "80": {
+          "window": 3,
+          "feasible_on_policy": true,
+          "selection_target": 0.8,
+          "low_threshold": 0.4042427378488321,
+          "high_threshold": 0.8147449803156518,
+          "policy_window_metrics": {
+            "fraud_triage_coverage": 0.8035153797865662,
+            "overall_review_rate": 0.1300067735380447,
+            "legitimate_auto_decline_rate": 0.01224910415251657
+          },
+          "evaluation_metrics": {
+            "fraud_auto_decline_recall": 0.3961352657004831,
+            "fraud_review_coverage": 0.3333333333333333,
+            "fraud_approved_rate": 0.27053140096618356,
+            "legitimate_auto_decline_rate": 0.014028617445904624,
+            "legitimate_review_rate": 0.12635092551527743,
+            "overall_review_rate": 0.13312260103860918,
+            "fraud_triage_coverage": 0.7294685990338164,
+            "auto_decline_precision": 0.48851063829787233,
+            "review_precision": 0.08191994572591588,
+            "total_transactions": 44290,
+            "total_fraud": 1449,
+            "total_legitimate": 42841,
+            "approve_count": 37219,
+            "review_count": 5896,
+            "decline_count": 1175
+          },
+          "canonical_constraint_outcome": {
+            "all_constraints_satisfied": false,
+            "passes": {
+              "triage_shortfall": false,
+              "review_excess": true,
+              "legitimate_decline_excess": true
+            },
+            "violation_magnitude": {
+              "triage_shortfall": 0.0705314009661836,
+              "review_excess": 0.0,
+              "legitimate_decline_excess": 0.0
+            }
+          },
+          "thresholds_frozen_before_evaluation": true
+        },
+        "82": {
+          "window": 3,
+          "feasible_on_policy": true,
+          "selection_target": 0.82,
+          "low_threshold": 0.3582190944221234,
+          "high_threshold": 0.8147449803156518,
+          "policy_window_metrics": {
+            "fraud_triage_coverage": 0.8298807281858129,
+            "overall_review_rate": 0.1599909686159404,
+            "legitimate_auto_decline_rate": 0.01224910415251657
+          },
+          "evaluation_metrics": {
+            "fraud_auto_decline_recall": 0.3961352657004831,
+            "fraud_review_coverage": 0.3699102829537612,
+            "fraud_approved_rate": 0.23395445134575568,
+            "legitimate_auto_decline_rate": 0.014028617445904624,
+            "legitimate_review_rate": 0.1540113442730095,
+            "overall_review_rate": 0.16107473470309325,
+            "fraud_triage_coverage": 0.7660455486542443,
+            "auto_decline_precision": 0.48851063829787233,
+            "review_precision": 0.0751331651247547,
+            "total_transactions": 44290,
+            "total_fraud": 1449,
+            "total_legitimate": 42841,
+            "approve_count": 35981,
+            "review_count": 7134,
+            "decline_count": 1175
+          },
+          "canonical_constraint_outcome": {
+            "all_constraints_satisfied": false,
+            "passes": {
+              "triage_shortfall": false,
+              "review_excess": true,
+              "legitimate_decline_excess": true
+            },
+            "violation_magnitude": {
+              "triage_shortfall": 0.0339544513457557,
+              "review_excess": 0.0,
+              "legitimate_decline_excess": 0.0
+            }
+          },
+          "thresholds_frozen_before_evaluation": true
+        },
+        "85": {
+          "window": 3,
+          "feasible_on_policy": true,
+          "selection_target": 0.85,
+          "low_threshold": 0.3187164859119025,
+          "high_threshold": 0.8147449803156518,
+          "policy_window_metrics": {
+            "fraud_triage_coverage": 0.8549905838041432,
+            "overall_review_rate": 0.1899977421539851,
+            "legitimate_auto_decline_rate": 0.01224910415251657
+          },
+          "evaluation_metrics": {
+            "fraud_auto_decline_recall": 0.3961352657004831,
+            "fraud_review_coverage": 0.39544513457556935,
+            "fraud_approved_rate": 0.20841959972394755,
+            "legitimate_auto_decline_rate": 0.014028617445904624,
+            "legitimate_review_rate": 0.18346910669685582,
+            "overall_review_rate": 0.19040415443666742,
+            "fraud_triage_coverage": 0.7915804002760525,
+            "auto_decline_precision": 0.48851063829787233,
+            "review_precision": 0.06794734969761651,
+            "total_transactions": 44290,
+            "total_fraud": 1449,
+            "total_legitimate": 42841,
+            "approve_count": 34682,
+            "review_count": 8433,
+            "decline_count": 1175
+          },
+          "canonical_constraint_outcome": {
+            "all_constraints_satisfied": false,
+            "passes": {
+              "triage_shortfall": false,
+              "review_excess": true,
+              "legitimate_decline_excess": true
+            },
+            "violation_magnitude": {
+              "triage_shortfall": 0.008419599723947568,
+              "review_excess": 0.0,
+              "legitimate_decline_excess": 0.0
+            }
+          },
+          "thresholds_frozen_before_evaluation": true
+        }
+      },
+      "drift": {
+        "score_psi_policy_to_evaluation": 0.000652123732053775,
+        "feature_psi_policy_to_evaluation": {
+          "TransactionAmt": 0.0008600238976066574,
+          "card1": 0.008688991265380249,
+          "dist1": 0.0038496446138685876,
+          "C1": 0.001417981087925123,
+          "D1": 0.0005470958899450922
+        }
+      },
+      "final_test_rows_used": 0
+    },
+    {
+      "window": 4,
+      "boundaries": {
+        "train": {
+          "start_row_inclusive": 0,
+          "end_row_exclusive": 413379,
+          "rows": 413379,
+          "fraud_cases": 14538,
+          "fraud_prevalence": 0.0351686950715929,
+          "start_transaction_dt": 86400,
+          "end_transaction_dt": 10438003,
+          "start_transaction_id": 2987000,
+          "end_transaction_id": 3400378
+        },
+        "validation": {
+          "start_row_inclusive": 413379,
+          "end_row_exclusive": 457669,
+          "rows": 44290,
+          "fraud_cases": 1593,
+          "fraud_prevalence": 0.03596748701738541,
+          "start_transaction_dt": 10438017,
+          "end_transaction_dt": 11725712,
+          "start_transaction_id": 3400379,
+          "end_transaction_id": 3444668
+        },
+        "policy": {
+          "start_row_inclusive": 457669,
+          "end_row_exclusive": 501959,
+          "rows": 44290,
+          "fraud_cases": 1449,
+          "fraud_prevalence": 0.03271618875592685,
+          "start_transaction_dt": 11725727,
+          "end_transaction_dt": 13151840,
+          "start_transaction_id": 3444669,
+          "end_transaction_id": 3488958
+        },
+        "evaluation": {
+          "start_row_inclusive": 501959,
+          "end_row_exclusive": 546249,
+          "rows": 44290,
+          "fraud_cases": 1350,
+          "fraud_prevalence": 0.03048092120117408,
+          "start_transaction_dt": 13151880,
+          "end_transaction_dt": 14417365,
+          "start_transaction_id": 3488959,
+          "end_transaction_id": 3533248
+        }
+      },
+      "preprocessing_fit_end_exclusive": 413379,
+      "categorical_columns_fit_on_train": [
+        "DeviceInfo",
+        "DeviceType",
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5",
+        "M6",
+        "M7",
+        "M8",
+        "M9",
+        "P_emaildomain",
+        "ProductCD",
+        "R_emaildomain",
+        "card4",
+        "card6",
+        "id_12",
+        "id_15",
+        "id_16",
+        "id_23",
+        "id_27",
+        "id_28",
+        "id_29",
+        "id_30",
+        "id_31",
+        "id_33",
+        "id_34",
+        "id_35",
+        "id_36",
+        "id_37",
+        "id_38"
+      ],
+      "model_metrics": {
+        "roc_auc": 0.9018377408614948,
+        "pr_auc": 0.49891787050071484,
+        "mean_prob": 0.17084179154059062,
+        "std_prob": 0.20106561122131697,
+        "min_prob": 0.0001846197998663246,
+        "max_prob": 0.9989369750953389
+      },
+      "score_distribution": {
+        "mean": 0.17084179154059062,
+        "std": 0.20106561122131697,
+        "min": 0.0001846197998663246,
+        "max": 0.9989369750953389
+      },
+      "canonical_policy": {
+        "window": 4,
+        "feasible_on_policy": true,
+        "selection_target": 0.8,
+        "low_threshold": 0.27556570874283665,
+        "high_threshold": 0.7217970975888938,
+        "policy_window_metrics": {
+          "fraud_triage_coverage": 0.8060731538992408,
+          "overall_review_rate": 0.1500112892300745,
+          "legitimate_auto_decline_rate": 0.016362829999299736
+        },
+        "evaluation_metrics": {
+          "fraud_auto_decline_recall": 0.49333333333333335,
+          "fraud_review_coverage": 0.34,
+          "fraud_approved_rate": 0.16666666666666666,
+          "legitimate_auto_decline_rate": 0.020027945971122497,
+          "legitimate_review_rate": 0.15507685142058686,
+          "overall_review_rate": 0.16071347934070895,
+          "fraud_triage_coverage": 0.8333333333333334,
+          "auto_decline_precision": 0.436435124508519,
+          "review_precision": 0.06448440573194718,
+          "total_transactions": 44290,
+          "total_fraud": 1350,
+          "total_legitimate": 42940,
+          "approve_count": 35646,
+          "review_count": 7118,
+          "decline_count": 1526
+        },
+        "canonical_constraint_outcome": {
+          "all_constraints_satisfied": false,
+          "passes": {
+            "triage_shortfall": true,
+            "review_excess": true,
+            "legitimate_decline_excess": false
+          },
+          "violation_magnitude": {
+            "triage_shortfall": 0.0,
+            "review_excess": 0.0,
+            "legitimate_decline_excess": 2.794597112249636e-05
+          }
+        },
+        "thresholds_frozen_before_evaluation": true
+      },
+      "safety_margins": {
+        "80": {
+          "window": 4,
+          "feasible_on_policy": true,
+          "selection_target": 0.8,
+          "low_threshold": 0.27556570874283665,
+          "high_threshold": 0.7217970975888938,
+          "policy_window_metrics": {
+            "fraud_triage_coverage": 0.8060731538992408,
+            "overall_review_rate": 0.1500112892300745,
+            "legitimate_auto_decline_rate": 0.016362829999299736
+          },
+          "evaluation_metrics": {
+            "fraud_auto_decline_recall": 0.49333333333333335,
+            "fraud_review_coverage": 0.34,
+            "fraud_approved_rate": 0.16666666666666666,
+            "legitimate_auto_decline_rate": 0.020027945971122497,
+            "legitimate_review_rate": 0.15507685142058686,
+            "overall_review_rate": 0.16071347934070895,
+            "fraud_triage_coverage": 0.8333333333333334,
+            "auto_decline_precision": 0.436435124508519,
+            "review_precision": 0.06448440573194718,
+            "total_transactions": 44290,
+            "total_fraud": 1350,
+            "total_legitimate": 42940,
+            "approve_count": 35646,
+            "review_count": 7118,
+            "decline_count": 1526
+          },
+          "canonical_constraint_outcome": {
+            "all_constraints_satisfied": false,
+            "passes": {
+              "triage_shortfall": true,
+              "review_excess": true,
+              "legitimate_decline_excess": false
+            },
+            "violation_magnitude": {
+              "triage_shortfall": 0.0,
+              "review_excess": 0.0,
+              "legitimate_decline_excess": 2.794597112249636e-05
+            }
+          },
+          "thresholds_frozen_before_evaluation": true
+        },
+        "82": {
+          "window": 4,
+          "feasible_on_policy": true,
+          "selection_target": 0.82,
+          "low_threshold": 0.2511714739746392,
+          "high_threshold": 0.7217970975888938,
+          "policy_window_metrics": {
+            "fraud_triage_coverage": 0.8260869565217391,
+            "overall_review_rate": 0.1699932264619553,
+            "legitimate_auto_decline_rate": 0.016362829999299736
+          },
+          "evaluation_metrics": {
+            "fraud_auto_decline_recall": 0.49333333333333335,
+            "fraud_review_coverage": 0.35333333333333333,
+            "fraud_approved_rate": 0.15333333333333332,
+            "legitimate_auto_decline_rate": 0.020027945971122497,
+            "legitimate_review_rate": 0.17671169073125292,
+            "overall_review_rate": 0.18209528110182885,
+            "fraud_triage_coverage": 0.8466666666666667,
+            "auto_decline_precision": 0.436435124508519,
+            "review_precision": 0.059144451332920026,
+            "total_transactions": 44290,
+            "total_fraud": 1350,
+            "total_legitimate": 42940,
+            "approve_count": 34699,
+            "review_count": 8065,
+            "decline_count": 1526
+          },
+          "canonical_constraint_outcome": {
+            "all_constraints_satisfied": false,
+            "passes": {
+              "triage_shortfall": true,
+              "review_excess": true,
+              "legitimate_decline_excess": false
+            },
+            "violation_magnitude": {
+              "triage_shortfall": 0.0,
+              "review_excess": 0.0,
+              "legitimate_decline_excess": 2.794597112249636e-05
+            }
+          },
+          "thresholds_frozen_before_evaluation": true
+        },
+        "85": {
+          "window": 4,
+          "feasible_on_policy": true,
+          "selection_target": 0.85,
+          "low_threshold": 0.2223437075951778,
+          "high_threshold": 0.7217970975888938,
+          "policy_window_metrics": {
+            "fraud_triage_coverage": 0.855072463768116,
+            "overall_review_rate": 0.2,
+            "legitimate_auto_decline_rate": 0.016362829999299736
+          },
+          "evaluation_metrics": {
+            "fraud_auto_decline_recall": 0.49333333333333335,
+            "fraud_review_coverage": 0.37037037037037035,
+            "fraud_approved_rate": 0.1362962962962963,
+            "legitimate_auto_decline_rate": 0.020027945971122497,
+            "legitimate_review_rate": 0.20614811364694924,
+            "overall_review_rate": 0.21115375931361482,
+            "fraud_triage_coverage": 0.8637037037037038,
+            "auto_decline_precision": 0.436435124508519,
+            "review_precision": 0.053464499572284004,
+            "total_transactions": 44290,
+            "total_fraud": 1350,
+            "total_legitimate": 42940,
+            "approve_count": 33412,
+            "review_count": 9352,
+            "decline_count": 1526
+          },
+          "canonical_constraint_outcome": {
+            "all_constraints_satisfied": false,
+            "passes": {
+              "triage_shortfall": true,
+              "review_excess": false,
+              "legitimate_decline_excess": false
+            },
+            "violation_magnitude": {
+              "triage_shortfall": 0.0,
+              "review_excess": 0.011153759313614814,
+              "legitimate_decline_excess": 2.794597112249636e-05
+            }
+          },
+          "thresholds_frozen_before_evaluation": true
+        }
+      },
+      "drift": {
+        "score_psi_policy_to_evaluation": 0.003589434125664198,
+        "feature_psi_policy_to_evaluation": {
+          "TransactionAmt": 0.0027509481890560144,
+          "card1": 0.008075930014640539,
+          "dist1": 0.0026108364168249635,
+          "C1": 0.0008236545629791844,
+          "D1": 0.0011444680466245552
+        }
+      },
+      "final_test_rows_used": 0
+    }
+  ],
+  "aggregate_temporal_distribution": {
+    "roc_auc": {
+      "mean": 0.8990234481276637,
+      "median": 0.9032200835469346,
+      "min": 0.8822988220893316,
+      "max": 0.9073548033274538,
+      "std": 0.009851013093480049,
+      "iqr": 0.008337509337690285
+    },
+    "pr_auc": {
+      "mean": 0.5052688271272369,
+      "median": 0.5237273222175909,
+      "min": 0.4239876648288366,
+      "max": 0.5496329992449291,
+      "std": 0.051203654613836816,
+      "iqr": 0.06862551117933724
+    },
+    "fraud_prevalence": {
+      "mean": 0.036238428539173625,
+      "median": 0.03434183788665613,
+      "min": 0.03048092120117408,
+      "max": 0.045789117182208176,
+      "std": 0.005849019719197034,
+      "iqr": 0.006265522691352443
+    },
+    "fraud_triage_coverage": {
+      "mean": 0.7909445241441727,
+      "median": 0.7980225988700564,
+      "min": 0.7294685990338164,
+      "max": 0.8382642998027613,
+      "std": 0.046401359777693406,
+      "iqr": 0.08016502688715155
+    },
+    "overall_review_rate": {
+      "mean": 0.14337322194626329,
+      "median": 0.14691804018965907,
+      "min": 0.11205689771957553,
+      "max": 0.1675999096861594,
+      "std": 0.022211507813606028,
+      "iqr": 0.034578911718220806
+    },
+    "legitimate_auto_decline_rate": {
+      "mean": 0.017060428110599192,
+      "median": 0.01702828170851356,
+      "min": 0.01210857905707661,
+      "max": 0.02207656996829303,
+      "std": 0.004113408755049186,
+      "iqr": 0.0069914941217175085
+    }
+  },
+  "canonical_constraint_generalization": {
+    "all_satisfied_count": 0,
+    "all_satisfied_fraction": 0.0,
+    "triage_shortfall": {
+      "violating_windows": 2,
+      "average_violation_all_windows": 0.026954884139851004,
+      "worst_violation": 0.0705314009661836
+    },
+    "review_excess": {
+      "violating_windows": 0,
+      "average_violation_all_windows": 0.0,
+      "worst_violation": 0.0
+    },
+    "legitimate_decline_excess": {
+      "violating_windows": 2,
+      "average_violation_all_windows": 0.0005261289848538814,
+      "worst_violation": 0.0020765699682930294
+    }
+  }
+}

@@ -24,8 +24,18 @@ class PolicyConfig:
 
 
 @dataclass(frozen=True)
+class CostScenarioConfig:
+    """Illustrative economics; these are not costs from Techcombank or any bank."""
+
+    missed_fraud_cost: float = 500.0
+    false_decline_cost: float = 100.0
+    manual_review_cost: float = 5.0
+    reviewed_fraud_recovery_rate: float = 0.50
+
+
+@dataclass(frozen=True)
 class PipelineConfig:
     random_state: int = 42
     split: SplitConfig = SplitConfig()
     policy: PolicyConfig = PolicyConfig()
-
+    cost_scenario: CostScenarioConfig = CostScenarioConfig()

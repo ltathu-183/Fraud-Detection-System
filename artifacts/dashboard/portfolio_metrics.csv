@@ -1,0 +1,2 @@
+total_transaction_volume,fraud_rate,approve_rate,review_rate,decline_rate,fraud_triage_coverage,legitimate_false_decline_rate,missed_fraud_amount_exposure
+44291,0.03912758799756158,0.8310040414531169,0.13305186155200832,0.0359440969948748,0.7888055395268321,0.017670003289628273,51833.77499999996

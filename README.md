@@ -1,118 +1,117 @@
-# IEEE-CIS Fraud Detection — corrected portfolio pipeline
+# Fraud Detection & Operational Decisioning
 
-This repository supports one execution path:
+> Leakage-aware fraud modelling and operational decision policy under review-capacity and legitimate-customer constraints.
 
-```text
-train_transaction.csv + train_identity.csv
-  -> stable chronological order and immutable row/split IDs
-  -> 70% train / 15% model validation / 7.5% policy / 7.5% final test
-  -> train-fitted frequency encoding
-  -> point-in-time behavioural features
-  -> weighted LightGBM with validation-only early stopping
-  -> hard-constrained policy selection on the policy split
-  -> one frozen final-test evaluation
-```
+Portfolio/reference implementation on **590,540 public IEEE-CIS transactions**. It does not represent Techcombank data, economics, systems, or expected performance.
 
-The active entry point is `src.pipeline.ieee_cis_pipeline`. The tiered pipeline,
-rules engine, feature store, calibration module, adversarial validation, and
-submission script are legacy/experimental and are not used by this path.
+## Problem
 
-## Correctness contract
+A fraud model does not directly make a banking decision. A useful decision system must balance:
 
-- `_internal_row_id` and `_split_id` are assigned before feature work. Splits
-  are recovered only by `_split_id`, never by position after a transformation.
-- The active raw transaction schema is `TransactionAmt`, `ProductCD`, card,
-  address, distance, email-domain, and C/D/M feature families, plus IEEE identity
-  fields. The high-dimensional `V*` transaction family is intentionally excluded
-  so the documented in-memory path fits on a developer machine.
-- Categorical frequencies and all preprocessing statistics are fitted on train.
-- Behavioural windows contain `[t-W, t)`: the current transaction, same-time
-  peers, and future transactions are excluded. Missing entities have no history.
-- No fraud-label-derived feature is active because label maturity is not modeled.
-- LightGBM receives native `NaN`; only infinities are converted to `NaN`.
-- `scale_pos_weight = N_negative_train / N_positive_train`.
-- Validation is used only for model selection/early stopping. Policy thresholds
-  are selected only on the policy split. The test split is opened only after a
-  feasible policy has been frozen.
-- Policy constraints have one source in `src/pipeline/config.py`: fraud triage
-  coverage at least 80%, overall review rate at most 20%, and legitimate
-  auto-decline rate at most 2%. Infeasibility stops evaluation; constraints are
-  never silently relaxed.
+- fraud risk and coverage;
+- finite manual-review workload;
+- legitimate-customer impact.
 
-`fraud_review_coverage` reports routing, not successful fraud detection.
-`fraud_triage_coverage` is auto-declined fraud plus reviewed fraud and likewise
-does not assume review effectiveness. Ranking ROC-AUC and average precision are
-reported separately from operational policy metrics.
+This project therefore converts a LightGBM fraud score into explicit **APPROVE / REVIEW / DECLINE** actions.
 
-## Data and canonical run
-
-The tracked `.dvc` files are pointers only. The previous `.dvc/config` referenced
-the placeholder `/path/to/dvc/remote/storage`; no reconstructable remote or
-credentials are available. Obtain the IEEE-CIS data under its applicable terms
-and place these files locally:
+## System
 
 ```text
-data/raw/train_transaction.csv
-data/raw/train_identity.csv
+IEEE-CIS transactions
+        ↓
+Leakage-safe temporal feature engineering
+        ↓
+LightGBM fraud risk score
+        ↓
+Policy selection on a dedicated policy split
+        ↓
+APPROVE / REVIEW / DECLINE
+        ↓
+Frozen final-test evaluation
+        ↓
+Monitoring / TreeSHAP / SQL analytics
 ```
 
-Then run:
+## Evaluation discipline
 
-```bash
-python -m pytest
-python -m src.pipeline.ieee_cis_pipeline
+```text
+train → validation → policy → threshold freeze → untouched final test
 ```
 
-Corrected results are written to `artifacts/corrected_results.json`. This checkout
-contains the required raw CSVs. Run the command above to reproduce the committed
-post-audit report. All performance numbers previously shown in this README were
-removed as invalid; only numbers emitted by this command are valid.
+- **Train:** fits preprocessing statistics, class weight, and model parameters.
+- **Validation:** controls LightGBM early stopping only.
+- **Policy:** selects operational thresholds under triage, capacity, and customer-impact constraints.
+- **Final test:** evaluates the already-frozen model and policy once.
 
-## Corrected frozen-test results
+Rows are stably ordered by `TransactionDT, TransactionID`. Point-in-time windows use `[t-W, t)`, excluding the current event, same-time peers, and future rows. The final test is now consumed and cannot be reused for development.
 
-Generated on the supplied raw data by the canonical command above:
+## Canonical results — V1 frozen
 
-| Model | ROC-AUC | PR-AUC | Notes |
-|---|---:|---:|---|
-| Dummy prior | 0.5000 | 0.0391 | Same frozen test |
-| Linear logistic-loss SGD | 0.7972 | 0.2121 | Train-only imputation/scaling |
-| LightGBM, no temporal features | 0.8977 | 0.5117 | Ablation; same split/protocol |
-| LightGBM, active feature set | 0.9010 | 0.5051 | Corrected final model |
+| Final-test metric | Result |
+|---|---:|
+| ROC-AUC | **0.9014** |
+| PR-AUC | **0.5181** |
+| Fraud auto-decline recall | **48.47%** |
+| Fraud routed to review | **30.41%** |
+| Fraud triage coverage | **78.88%** |
+| Review workload | **13.31%** |
+| Legitimate auto-decline | **1.77%** |
 
-The active policy met its pre-specified constraints on the final test: 80.32%
-fraud triage coverage, 15.25% overall review rate, and 1.80% legitimate
-auto-decline rate. It auto-declined 47.84% of fraud and routed 32.49% of fraud
-to review. Review routing is not claimed as confirmed fraud detection.
+PR-AUC is important because final-test fraud prevalence is only 3.91%. Reviewed fraud means routed to investigators; it is not assumed detected or recovered.
 
-The ablation improves PR-AUC slightly while reducing ROC-AUC. This is not used
-to revise the selected model after testing; it is reported as a post-audit
-diagnostic, so the active configuration remains the pre-specified feature set.
-Because that diagnostic compared model variants on the test split, this test
-split must not be used for any future model-selection decision. A newly reserved
-chronological holdout is required before promoting a research change.
+> The policy satisfied the 80% target on the policy split but achieved **78.88% on final test**. It did not meet the final-test 80% target, and thresholds were not retrospectively retuned.
 
-## Research track — not a new performance claim
+## Key finding
 
-The next experiments are validation-only until a new holdout is reserved:
+> **Good predictive discrimination did not guarantee stable operational constraint transfer over time.**
 
-1. Point-in-time behavioural features: card/device/email/address novelty and
-   entity age. They use only strictly earlier transactions and preserve raw
-   entity identifiers until feature generation is complete.
-2. Capacity evaluation: report `Recall@5%`, `Recall@10%`, `Recall@15%` review
-   capacity and their precision counterparts, alongside PR-AUC. These measure
-   ranking under realistic review limits without selecting a threshold on test.
-3. Temporal stability: use rolling chronological validation before considering
-   calibration, cost assumptions, or more complex relational models.
+Four pre-final pseudo-future evaluations produced PR-AUC of **0.4240–0.5496** and triage coverage of **72.95%–83.83%**; zero of four satisfied every canonical constraint. Small marginal feature/score PSI values did not identify the largest degradation, so simple marginal drift monitoring is not proof of policy stability.
 
-No cost-sensitive policy is claimed yet because the data contains no real bank
-loss, customer-friction, or review-cost inputs. No target/fraud-history feature
-is active because label-maturity timing is unknown.
+## What I tested after observing instability — V2 exploratory
+
+- recent-window LightGBM retraining;
+- recency-weighted expanding training;
+- capacity-aware adaptive thresholds with a Wilson customer-risk bound;
+- historical-only Platt and isotonic calibration.
+
+Expanding-history LightGBM remained best for mean and worst PR-AUC. Adaptive thresholds modestly stabilized triage but did not justify replacement, while Platt scaling improved calibration metrics without improving ranking. **None provided enough evidence to replace frozen V1.** V2 used zero final-test rows and remains exploratory/not promoted.
+
+## Engineering and governance
+
+- identity, chronology, same-timestamp, train-only preprocessing, and threshold-provenance tests;
+- immutable final manifest with configuration, boundaries, metrics, and SHA-256 hashes;
+- TreeSHAP/global gain and local model-behavior explanations;
+- data-quality, marginal drift, score, performance, and operational monitoring;
+- executable SQLite analytics and dashboard-ready aggregate exports.
+
+Technical reviewer path:
+
+1. [Audit summary](reports/AUDIT_SUMMARY.md)
+2. [Frozen temporal robustness](reports/TEMPORAL_ROBUSTNESS.md)
+3. [Policy robustness](reports/POLICY_ROBUSTNESS.md)
+4. [V2 adaptive comparison](reports/v2/ADAPTIVE_POLICY.md)
+5. [V2 calibration](reports/v2/CALIBRATION.md)
+6. [CV-safe claim ledger](reports/CV_CLAIMS.md)
+
+Canonical entry point: `src.pipeline.ieee_cis_pipeline`. V1 is **CANONICAL / FROZEN**; `src/v2/` is **EXPLORATORY / NOT PROMOTED**; tiered rules, feature store, calibration, adversarial-validation, and submission modules are **LEGACY / NON-CANONICAL**.
 
 ## Limitations
 
-This is an in-memory pandas portfolio pipeline, not a serving system. It has no
-real bank cost data, measured reviewer effectiveness, production API, operational
-monitoring evidence, or scalability validation. Fraud labels may be delayed, but
-label maturity is not modeled. IEEE-CIS results may not generalize to another
-merchant, geography, time period, or bank. Weighted LightGBM scores are not
-assumed to be calibrated; calibration is optional/unused in the supported path.
+Public IEEE-CIS data; no bank-specific validation or observed review outcomes; hypothetical costs only; final test consumed; four rolling pseudo-future windows; no new future holdout; no production serving, security, scalability, or governance validation. This is not production-ready.
+
+Repository code is released under the [MIT License](LICENSE). IEEE-CIS data has separate availability and usage terms; raw competition CSVs are ignored and are not distributed here. See [public release notes](reports/PUBLIC_RELEASE.md).
+
+## Reproduce
+
+Supported Python: **3.11**. Place `train_transaction.csv` and `train_identity.csv` in `data/raw/`; the committed DVC pointers do not provide a usable public remote.
+
+For the exact locked environment, use `uv sync --frozen`; `requirements.txt` is the concise pip-compatible dependency list. Dependency versions were not upgraded during release polish.
+
+```bash
+python -m pip install -r requirements.txt
+python -m pytest -q
+python -m src.pipeline.ieee_cis_pipeline
+python scripts/run_sql_analytics.py
+```
+
+The full pipeline command reproduces evidence; it must not be used to select new changes on the consumed test. Any future model or policy redesign requires genuinely later untouched labeled data or a new dataset. See [project status](PROJECT_STATUS.md).

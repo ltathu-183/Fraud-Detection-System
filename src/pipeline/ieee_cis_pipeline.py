@@ -11,11 +11,15 @@ from sklearn.impute import SimpleImputer
 from sklearn.linear_model import SGDClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import f1_score
 
+from src.analytics.exports import build_decision_table, write_analytics_artifacts
 from src.data.categorical_encoding import CategoricalEncoder
 from src.evaluation.metrics import calculate_ranking_metrics, evaluate_policy, optimize_policy_thresholds
 from src.features.temporal_features import TemporalFeatureEngineer
+from src.monitoring.monitoring import build_monitoring_report
 from src.models.lightgbm_model import LightGBMFraudModel
+from src.policy.business_scenarios import compare_policies, optimize_cost_policy
 from src.pipeline.config import PipelineConfig
 
 IDENTITY_COLUMNS = {"_internal_row_id", "_split_id", "TransactionID", "TransactionDT", "isFraud"}
@@ -32,6 +36,7 @@ class FraudDetectionPipeline:
         self.feature_engineer = TemporalFeatureEngineer()
         self.model = LightGBMFraudModel()
         self.splits = {}
+        self.raw_splits = {}
         self.feature_cols = None
 
     def load_data(self, transaction_path, identity_path=None):
@@ -85,6 +90,7 @@ class FraudDetectionPipeline:
         self._expected_membership = data.set_index("_internal_row_id")["_split_id"].to_dict()
         self._expected_targets = data.set_index("_internal_row_id")[["TransactionID", "isFraud"]].to_dict("index")
         self.splits = {name: part.copy() for name, part in data.groupby("_split_id", sort=False)}
+        self.raw_splits = {name: part.copy() for name, part in self.splits.items()}
 
     def engineer_features(self):
         combined = pd.concat(self.splits.values(), ignore_index=True)
@@ -135,6 +141,45 @@ class FraudDetectionPipeline:
         )
         return results
 
+    @staticmethod
+    def _metric_threshold(y, probabilities):
+        """Choose a single F1 threshold on the policy split, never on test."""
+        grid = np.unique(np.r_[0.0, np.quantile(probabilities, np.linspace(0, 1, 101)), 1.0])
+        scored = [(f1_score(y, probabilities >= threshold, zero_division=0), float(threshold)) for threshold in grid]
+        return max(scored, key=lambda item: (item[0], item[1]))[1]
+
+    def _explainability_artifacts(self, x_test, test_probs, output_dir="artifacts/explainability"):
+        """Use LightGBM's TreeSHAP contributions; values describe model behavior, not causality."""
+        target = Path(output_dir); target.mkdir(parents=True, exist_ok=True)
+        sample_size = min(2000, len(x_test))
+        sample = x_test.iloc[:sample_size]
+        contributions = self.model.model.predict(sample, pred_contrib=True,
+                                                 num_iteration=self.model.model.best_iteration)
+        mean_abs = np.abs(contributions[:, :-1]).mean(axis=0)
+        importance = pd.DataFrame({"feature": self.feature_cols, "mean_abs_shap": mean_abs}).sort_values(
+            "mean_abs_shap", ascending=False
+        )
+        importance.to_csv(target / "global_shap_importance.csv", index=False)
+        gain = self.model.get_feature_importance(top_n=20)
+        gain.to_csv(target / "global_gain_importance.csv", index=False)
+        selected_rows = sorted(set([int(np.argmin(test_probs)), int(np.argmax(test_probs)), int(np.argsort(test_probs)[len(test_probs)//2])]))
+        local_x = x_test.iloc[selected_rows]
+        local = self.model.model.predict(local_x, pred_contrib=True,
+                                         num_iteration=self.model.model.best_iteration)
+        records = []
+        for row_position, score, values in zip(selected_rows, test_probs[selected_rows], local[:, :-1]):
+            order = np.argsort(-np.abs(values))[:10]
+            for rank, idx in enumerate(order, 1):
+                records.append({"test_row_position": row_position, "fraud_score": float(score), "rank": rank,
+                                "feature": self.feature_cols[idx], "shap_contribution": float(values[idx]),
+                                "feature_value": local_x.iloc[selected_rows.index(row_position), idx]})
+        pd.DataFrame(records).to_csv(target / "local_sample_explanations.csv", index=False)
+        return {"method": "LightGBM pred_contrib (TreeSHAP)", "sample_rows": sample_size,
+                "global_importance": str(target / "global_shap_importance.csv"),
+                "gain_importance": str(target / "global_gain_importance.csv"),
+                "local_examples": str(target / "local_sample_explanations.csv"),
+                "interpretation": "Associations with model output; not causal effects."}
+
     def run(self, transaction_path, identity_path=None, output_path="artifacts/corrected_results.json"):
         self.temporal_split(self.load_data(transaction_path, identity_path))
         self.engineer_features()
@@ -158,6 +203,14 @@ class FraudDetectionPipeline:
             "test_excluded_from_model_training": True,
             "test_excluded_from_threshold_selection": True,
         }
+        metric_threshold = self._metric_threshold(y_policy.to_numpy(), policy_probs)
+        cost_selected = optimize_cost_policy(y_policy.to_numpy(), policy_probs, self.config.cost_scenario)
+        frozen_policies = {
+            "default_0_5": (0.5, 0.5),
+            "metric_f1": (metric_threshold, metric_threshold),
+            "operational_constraints": (selected["low_threshold"], selected["high_threshold"]),
+            "cost_scenario": (cost_selected["low_threshold"], cost_selected["high_threshold"]),
+        }
         x_test, y_test = matrices["test"]
         test_probs = self.model.predict_proba(x_test)[:, 1]
         temporal_cols = [col for col in self.feature_cols if col.startswith("card1_")]
@@ -168,7 +221,19 @@ class FraudDetectionPipeline:
             self.splits["validation"][ablation_features], y_val,
             feature_names=ablation_features,
         )
-        ablation_probs = ablation.predict_proba(self.splits["test"][ablation_features])[:, 1]
+        ablation_probs = ablation.predict_proba(self.splits["validation"][ablation_features])[:, 1]
+        policy_comparison = compare_policies(y_test.to_numpy(), test_probs, frozen_policies, self.config.cost_scenario)
+        decisions = build_decision_table(self.raw_splits["test"], test_probs, selected["low_threshold"], selected["high_threshold"])
+        analytics_artifacts = write_analytics_artifacts(decisions)
+        monitoring = build_monitoring_report(
+            self.splits["policy"], self.splits["test"], policy_probs, test_probs, y_test.to_numpy(),
+            (selected["low_threshold"], selected["high_threshold"]),
+            feature_columns=[c for c in ("TransactionAmt", "card1", "dist1", "C1", "D1") if c in self.feature_cols],
+        )
+        monitoring_path = Path("artifacts/monitoring/monitoring_report.json")
+        monitoring_path.parent.mkdir(parents=True, exist_ok=True)
+        monitoring_path.write_text(json.dumps(monitoring, indent=2), encoding="utf-8")
+        explainability = self._explainability_artifacts(x_test, test_probs)
         results = {
             "status": "CORRECTED / POST-AUDIT RESULTS",
             "ranking": calculate_ranking_metrics(y_test.to_numpy(), test_probs),
@@ -180,8 +245,14 @@ class FraudDetectionPipeline:
             "baselines": self._baseline_results(x_train, y_train, x_test, y_test),
             "temporal_feature_ablation": {
                 "excluded_features": temporal_cols,
-                "ranking": calculate_ranking_metrics(y_test.to_numpy(), ablation_probs),
+                "evaluation_split": "validation",
+                "ranking": calculate_ranking_metrics(y_val.to_numpy(), ablation_probs),
             },
+            "policy_comparison": policy_comparison,
+            "policy_selection_provenance": {"all_thresholds_selected_on": "policy", "frozen_policies": frozen_policies},
+            "monitoring_artifact": str(monitoring_path),
+            "analytics_artifacts": analytics_artifacts,
+            "explainability": explainability,
         }
         target = Path(output_path); target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(results, indent=2), encoding="utf-8")

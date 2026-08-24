@@ -1,11 +1,9 @@
-"""Tiered pipeline orchestrator."""
+"""Canonical fraud pipeline public API.
 
-from .tiered_pipeline import TieredFraudPipeline
-from .feature_store import FeatureStore
+Legacy experiments remain available through their explicit module paths but are
+not imported into the supported package surface.
+"""
+
 from .ieee_cis_pipeline import FraudDetectionPipeline
 
-__all__ = [
-    'TieredFraudPipeline',
-    'FeatureStore',
-    'FraudDetectionPipeline',
-]
+__all__ = ["FraudDetectionPipeline"]

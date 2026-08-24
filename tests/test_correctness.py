@@ -26,6 +26,7 @@ def test_split_membership_and_target_alignment_survive_entity_sort():
     assert set(pipeline.splits["test"].TransactionID) == {80}
     labels = pd.concat(pipeline.splits.values()).set_index("TransactionID").isFraud.to_dict()
     assert labels == {10: 0, 20: 1, 30: 0, 40: 0, 50: 1, 60: 0, 70: 0, 80: 1}
+    assert pipeline.raw_splits["test"].TransactionID.tolist() == [80]
 
 
 def test_past_only_windows_future_and_current_do_not_leak():

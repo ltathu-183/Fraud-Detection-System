@@ -1,0 +1,598 @@
+{
+  "status": "V2 2x2 EXPLORATORY SYSTEM ABLATION",
+  "systems": {
+    "v1_static": {
+      "windows": [
+        {
+          "window": 1,
+          "ranking": {
+            "roc_auc": 0.9073548033274538,
+            "pr_auc": 0.548536773934467,
+            "mean_prob": 0.18376442334609477,
+            "std_prob": 0.2098789625993595,
+            "min_prob": 0.00040641512946423017,
+            "max_prob": 0.9983540853078233
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.5226824457593688,
+            "fraud_review_coverage": 0.3155818540433925,
+            "fraud_approved_rate": 0.16173570019723865,
+            "legitimate_auto_decline_rate": 0.02207656996829303,
+            "legitimate_review_rate": 0.16049879324215607,
+            "overall_review_rate": 0.1675999096861594,
+            "fraud_triage_coverage": 0.8382642998027613,
+            "auto_decline_precision": 0.5318615153035625,
+            "review_precision": 0.08621851003637343,
+            "total_transactions": 44290,
+            "total_fraud": 2028,
+            "total_legitimate": 42262,
+            "approve_count": 34874,
+            "review_count": 7423,
+            "decline_count": 1993
+          },
+          "thresholds": {
+            "low": 0.27156661348137406,
+            "high": 0.7013268931200307
+          }
+        },
+        {
+          "window": 2,
+          "ranking": {
+            "roc_auc": 0.9046024262323745,
+            "pr_auc": 0.5496329992449291,
+            "mean_prob": 0.1432549835784431,
+            "std_prob": 0.17669908955086205,
+            "min_prob": 0.0014491955579096797,
+            "max_prob": 0.99658899399813
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.4839924670433145,
+            "fraud_review_coverage": 0.2787193973634652,
+            "fraud_approved_rate": 0.23728813559322035,
+            "legitimate_auto_decline_rate": 0.01210857905707661,
+            "legitimate_review_rate": 0.10583881771553036,
+            "overall_review_rate": 0.11205689771957553,
+            "fraud_triage_coverage": 0.7627118644067796,
+            "auto_decline_precision": 0.5986024844720497,
+            "review_precision": 0.08946201894015716,
+            "total_transactions": 44290,
+            "total_fraud": 1593,
+            "total_legitimate": 42697,
+            "approve_count": 38039,
+            "review_count": 4963,
+            "decline_count": 1288
+          },
+          "thresholds": {
+            "low": 0.28204254024002895,
+            "high": 0.6578000444948996
+          }
+        },
+        {
+          "window": 3,
+          "ranking": {
+            "roc_auc": 0.8822988220893316,
+            "pr_auc": 0.4239876648288366,
+            "mean_prob": 0.20734833770698713,
+            "std_prob": 0.21715612414683613,
+            "min_prob": 0.00037408516637096195,
+            "max_prob": 0.9996281930381231
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.3961352657004831,
+            "fraud_review_coverage": 0.3333333333333333,
+            "fraud_approved_rate": 0.27053140096618356,
+            "legitimate_auto_decline_rate": 0.014028617445904624,
+            "legitimate_review_rate": 0.12635092551527743,
+            "overall_review_rate": 0.13312260103860918,
+            "fraud_triage_coverage": 0.7294685990338164,
+            "auto_decline_precision": 0.48851063829787233,
+            "review_precision": 0.08191994572591588,
+            "total_transactions": 44290,
+            "total_fraud": 1449,
+            "total_legitimate": 42841,
+            "approve_count": 37219,
+            "review_count": 5896,
+            "decline_count": 1175
+          },
+          "thresholds": {
+            "low": 0.4042427378488321,
+            "high": 0.8147449803156518
+          }
+        },
+        {
+          "window": 4,
+          "ranking": {
+            "roc_auc": 0.9018377408614948,
+            "pr_auc": 0.49891787050071484,
+            "mean_prob": 0.17084179154059062,
+            "std_prob": 0.20106561122131697,
+            "min_prob": 0.0001846197998663246,
+            "max_prob": 0.9989369750953389
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.49333333333333335,
+            "fraud_review_coverage": 0.34,
+            "fraud_approved_rate": 0.16666666666666666,
+            "legitimate_auto_decline_rate": 0.020027945971122497,
+            "legitimate_review_rate": 0.15507685142058686,
+            "overall_review_rate": 0.16071347934070895,
+            "fraud_triage_coverage": 0.8333333333333334,
+            "auto_decline_precision": 0.436435124508519,
+            "review_precision": 0.06448440573194718,
+            "total_transactions": 44290,
+            "total_fraud": 1350,
+            "total_legitimate": 42940,
+            "approve_count": 35646,
+            "review_count": 7118,
+            "decline_count": 1526
+          },
+          "thresholds": {
+            "low": 0.27556570874283665,
+            "high": 0.7217970975888938
+          }
+        }
+      ],
+      "summary": {
+        "mean_pr_auc": 0.5052688271272369,
+        "worst_pr_auc": 0.4239876648288366,
+        "mean_roc_auc": 0.8990234481276637,
+        "mean_triage": 0.7909445241441727,
+        "worst_triage": 0.7294685990338164,
+        "mean_review": 0.14337322194626329,
+        "max_legitimate_decline": 0.02207656996829303,
+        "constraints_satisfied": 0,
+        "windows": 4,
+        "constraint_definition": {
+          "min_triage": 0.8,
+          "max_review": 0.2,
+          "max_legitimate_decline": 0.02
+        }
+      }
+    },
+    "adaptive_policy_only": {
+      "windows": [
+        {
+          "window": 1,
+          "ranking": {
+            "roc_auc": 0.9073548033274538,
+            "pr_auc": 0.548536773934467,
+            "mean_prob": 0.18376442334609477,
+            "std_prob": 0.2098789625993595,
+            "min_prob": 0.00040641512946423017,
+            "max_prob": 0.9983540853078233
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.5226824457593688,
+            "fraud_review_coverage": 0.2963510848126233,
+            "fraud_approved_rate": 0.1809664694280079,
+            "legitimate_auto_decline_rate": 0.02207656996829303,
+            "legitimate_review_rate": 0.1407884151246983,
+            "overall_review_rate": 0.14791149243621585,
+            "fraud_triage_coverage": 0.8190335305719921,
+            "auto_decline_precision": 0.5318615153035625,
+            "review_precision": 0.09174171882155396,
+            "total_transactions": 44290,
+            "total_fraud": 2028,
+            "total_legitimate": 42262,
+            "approve_count": 35746,
+            "review_count": 6551,
+            "decline_count": 1993
+          },
+          "thresholds": {
+            "low": 0.29658049025811284,
+            "high": 0.7013268931200307
+          }
+        },
+        {
+          "window": 2,
+          "ranking": {
+            "roc_auc": 0.9046024262323745,
+            "pr_auc": 0.5496329992449291,
+            "mean_prob": 0.1432549835784431,
+            "std_prob": 0.17669908955086205,
+            "min_prob": 0.0014491955579096797,
+            "max_prob": 0.99658899399813
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.4839924670433145,
+            "fraud_review_coverage": 0.31324544883866917,
+            "fraud_approved_rate": 0.20276208411801633,
+            "legitimate_auto_decline_rate": 0.01210857905707661,
+            "legitimate_review_rate": 0.13879195259620114,
+            "overall_review_rate": 0.1450666064574396,
+            "fraud_triage_coverage": 0.7972379158819837,
+            "auto_decline_precision": 0.5986024844720497,
+            "review_precision": 0.07766536964980544,
+            "total_transactions": 44290,
+            "total_fraud": 1593,
+            "total_legitimate": 42697,
+            "approve_count": 36577,
+            "review_count": 6425,
+            "decline_count": 1288
+          },
+          "thresholds": {
+            "low": 0.24178270888827255,
+            "high": 0.6578000444948996
+          }
+        },
+        {
+          "window": 3,
+          "ranking": {
+            "roc_auc": 0.8822988220893316,
+            "pr_auc": 0.4239876648288366,
+            "mean_prob": 0.20734833770698713,
+            "std_prob": 0.21715612414683613,
+            "min_prob": 0.00037408516637096195,
+            "max_prob": 0.9996281930381231
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.3961352657004831,
+            "fraud_review_coverage": 0.3581780538302277,
+            "fraud_approved_rate": 0.24568668046928915,
+            "legitimate_auto_decline_rate": 0.014028617445904624,
+            "legitimate_review_rate": 0.14399757241894448,
+            "overall_review_rate": 0.1510047414766313,
+            "fraud_triage_coverage": 0.7543133195307108,
+            "auto_decline_precision": 0.48851063829787233,
+            "review_precision": 0.07760167464114832,
+            "total_transactions": 44290,
+            "total_fraud": 1449,
+            "total_legitimate": 42841,
+            "approve_count": 36427,
+            "review_count": 6688,
+            "decline_count": 1175
+          },
+          "thresholds": {
+            "low": 0.37343163088070075,
+            "high": 0.8147449803156518
+          }
+        },
+        {
+          "window": 4,
+          "ranking": {
+            "roc_auc": 0.9018377408614948,
+            "pr_auc": 0.49891787050071484,
+            "mean_prob": 0.17084179154059062,
+            "std_prob": 0.20106561122131697,
+            "min_prob": 0.0001846197998663246,
+            "max_prob": 0.9989369750953389
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.49333333333333335,
+            "fraud_review_coverage": 0.34,
+            "fraud_approved_rate": 0.16666666666666666,
+            "legitimate_auto_decline_rate": 0.020027945971122497,
+            "legitimate_review_rate": 0.15507685142058686,
+            "overall_review_rate": 0.16071347934070895,
+            "fraud_triage_coverage": 0.8333333333333334,
+            "auto_decline_precision": 0.436435124508519,
+            "review_precision": 0.06448440573194718,
+            "total_transactions": 44290,
+            "total_fraud": 1350,
+            "total_legitimate": 42940,
+            "approve_count": 35646,
+            "review_count": 7118,
+            "decline_count": 1526
+          },
+          "thresholds": {
+            "low": 0.27556760022347065,
+            "high": 0.7217970975888938
+          }
+        }
+      ],
+      "summary": {
+        "mean_pr_auc": 0.5052688271272369,
+        "worst_pr_auc": 0.4239876648288366,
+        "mean_roc_auc": 0.8990234481276637,
+        "mean_triage": 0.800979524829505,
+        "worst_triage": 0.7543133195307108,
+        "mean_review": 0.15117407992774892,
+        "max_legitimate_decline": 0.02207656996829303,
+        "constraints_satisfied": 0,
+        "windows": 4,
+        "constraint_definition": {
+          "min_triage": 0.8,
+          "max_review": 0.2,
+          "max_legitimate_decline": 0.02
+        }
+      }
+    },
+    "recent_model_only": {
+      "windows": [
+        {
+          "window": 1,
+          "ranking": {
+            "roc_auc": 0.9008530144957486,
+            "pr_auc": 0.5346160900797021,
+            "mean_prob": 0.15400740244206523,
+            "std_prob": 0.1915630642048933,
+            "min_prob": 0.0015467743034024795,
+            "max_prob": 0.9964908489784731
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.46005917159763315,
+            "fraud_review_coverage": 0.29142011834319526,
+            "fraud_approved_rate": 0.2485207100591716,
+            "legitimate_auto_decline_rate": 0.014930670578770526,
+            "legitimate_review_rate": 0.11348256116605934,
+            "overall_review_rate": 0.12163016482275908,
+            "fraud_triage_coverage": 0.7514792899408284,
+            "auto_decline_precision": 0.5965473145780051,
+            "review_precision": 0.10970855763875997,
+            "total_transactions": 44290,
+            "total_fraud": 2028,
+            "total_legitimate": 42262,
+            "approve_count": 37339,
+            "review_count": 5387,
+            "decline_count": 1564
+          },
+          "thresholds": {
+            "low": 0.27156661348137406,
+            "high": 0.7013268931200307
+          }
+        },
+        {
+          "window": 2,
+          "ranking": {
+            "roc_auc": 0.9035124084409094,
+            "pr_auc": 0.5398613285946017,
+            "mean_prob": 0.17068311701676261,
+            "std_prob": 0.18054765123882704,
+            "min_prob": 0.005582371929575014,
+            "max_prob": 0.9929317080509258
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.4896421845574388,
+            "fraud_review_coverage": 0.31512868801004396,
+            "fraud_approved_rate": 0.19522912743251727,
+            "legitimate_auto_decline_rate": 0.015434339649155679,
+            "legitimate_review_rate": 0.13574724219500198,
+            "overall_review_rate": 0.14219914201851433,
+            "fraud_triage_coverage": 0.8047708725674827,
+            "auto_decline_precision": 0.542043085476025,
+            "review_precision": 0.07970784375992379,
+            "total_transactions": 44290,
+            "total_fraud": 1593,
+            "total_legitimate": 42697,
+            "approve_count": 36553,
+            "review_count": 6298,
+            "decline_count": 1439
+          },
+          "thresholds": {
+            "low": 0.28204254024002895,
+            "high": 0.6578000444948996
+          }
+        },
+        {
+          "window": 3,
+          "ranking": {
+            "roc_auc": 0.8786579176707285,
+            "pr_auc": 0.3985204441199389,
+            "mean_prob": 0.1882057802356785,
+            "std_prob": 0.20646254526810506,
+            "min_prob": 0.0010472201643321865,
+            "max_prob": 0.9991038066187292
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.35679779158040026,
+            "fraud_review_coverage": 0.3305728088336784,
+            "fraud_approved_rate": 0.31262939958592134,
+            "legitimate_auto_decline_rate": 0.011531010013771855,
+            "legitimate_review_rate": 0.10513293340491585,
+            "overall_review_rate": 0.11250846692255588,
+            "fraud_triage_coverage": 0.6873706004140787,
+            "auto_decline_precision": 0.5113748763600395,
+            "review_precision": 0.09612683122616897,
+            "total_transactions": 44290,
+            "total_fraud": 1449,
+            "total_legitimate": 42841,
+            "approve_count": 38296,
+            "review_count": 4983,
+            "decline_count": 1011
+          },
+          "thresholds": {
+            "low": 0.4042427378488321,
+            "high": 0.8147449803156518
+          }
+        },
+        {
+          "window": 4,
+          "ranking": {
+            "roc_auc": 0.8954615742897067,
+            "pr_auc": 0.5014706968939033,
+            "mean_prob": 0.11571980567779525,
+            "std_prob": 0.17253639287139974,
+            "min_prob": 0.0002290462706376503,
+            "max_prob": 0.9992871067295516
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.41555555555555557,
+            "fraud_review_coverage": 0.3125925925925926,
+            "fraud_approved_rate": 0.27185185185185184,
+            "legitimate_auto_decline_rate": 0.009711224965067536,
+            "legitimate_review_rate": 0.08197484862598975,
+            "overall_review_rate": 0.08900428990742831,
+            "fraud_triage_coverage": 0.7281481481481481,
+            "auto_decline_precision": 0.5736196319018405,
+            "review_precision": 0.10705225773718924,
+            "total_transactions": 44290,
+            "total_fraud": 1350,
+            "total_legitimate": 42940,
+            "approve_count": 39370,
+            "review_count": 3942,
+            "decline_count": 978
+          },
+          "thresholds": {
+            "low": 0.27556570874283665,
+            "high": 0.7217970975888938
+          }
+        }
+      ],
+      "summary": {
+        "mean_pr_auc": 0.4936171399220365,
+        "worst_pr_auc": 0.3985204441199389,
+        "mean_roc_auc": 0.8946212287242732,
+        "mean_triage": 0.7429422277676345,
+        "worst_triage": 0.6873706004140787,
+        "mean_review": 0.11633551591781441,
+        "max_legitimate_decline": 0.015434339649155679,
+        "constraints_satisfied": 1,
+        "windows": 4,
+        "constraint_definition": {
+          "min_triage": 0.8,
+          "max_review": 0.2,
+          "max_legitimate_decline": 0.02
+        }
+      }
+    },
+    "full_v2_adaptive": {
+      "windows": [
+        {
+          "window": 1,
+          "ranking": {
+            "roc_auc": 0.9008530144957486,
+            "pr_auc": 0.5346160900797021,
+            "mean_prob": 0.15400740244206523,
+            "std_prob": 0.1915630642048933,
+            "min_prob": 0.0015467743034024795,
+            "max_prob": 0.9964908489784731
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.4970414201183432,
+            "fraud_review_coverage": 0.2948717948717949,
+            "fraud_approved_rate": 0.20808678500986194,
+            "legitimate_auto_decline_rate": 0.02207656996829303,
+            "legitimate_review_rate": 0.13768870380010412,
+            "overall_review_rate": 0.14488597877624745,
+            "fraud_triage_coverage": 0.7919132149901381,
+            "auto_decline_precision": 0.5193199381761978,
+            "review_precision": 0.0931899641577061,
+            "total_transactions": 44290,
+            "total_fraud": 2028,
+            "total_legitimate": 42262,
+            "approve_count": 35932,
+            "review_count": 6417,
+            "decline_count": 1941
+          },
+          "thresholds": {
+            "low": 0.23297124512145953,
+            "high": 0.6233873867295078
+          }
+        },
+        {
+          "window": 2,
+          "ranking": {
+            "roc_auc": 0.9035124084409094,
+            "pr_auc": 0.5398613285946017,
+            "mean_prob": 0.17068311701676261,
+            "std_prob": 0.18054765123882704,
+            "min_prob": 0.005582371929575014,
+            "max_prob": 0.9929317080509258
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.4745762711864407,
+            "fraud_review_coverage": 0.32454488386691777,
+            "fraud_approved_rate": 0.20087884494664154,
+            "legitimate_auto_decline_rate": 0.01360751340843619,
+            "legitimate_review_rate": 0.13317094877860272,
+            "overall_review_rate": 0.14005418830435765,
+            "fraud_triage_coverage": 0.7991211550533585,
+            "auto_decline_precision": 0.5654450261780105,
+            "review_precision": 0.08334676769305174,
+            "total_transactions": 44290,
+            "total_fraud": 1593,
+            "total_legitimate": 42697,
+            "approve_count": 36750,
+            "review_count": 6203,
+            "decline_count": 1337
+          },
+          "thresholds": {
+            "low": 0.28690965143795144,
+            "high": 0.6824696021179746
+          }
+        },
+        {
+          "window": 3,
+          "ranking": {
+            "roc_auc": 0.8786579176707285,
+            "pr_auc": 0.3985204441199389,
+            "mean_prob": 0.1882057802356785,
+            "std_prob": 0.20646254526810506,
+            "min_prob": 0.0010472201643321865,
+            "max_prob": 0.9991038066187292
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.38233264320220844,
+            "fraud_review_coverage": 0.36645962732919257,
+            "fraud_approved_rate": 0.25120772946859904,
+            "legitimate_auto_decline_rate": 0.015732592609883057,
+            "legitimate_review_rate": 0.145188020821176,
+            "overall_review_rate": 0.1524271844660194,
+            "fraud_triage_coverage": 0.748792270531401,
+            "auto_decline_precision": 0.4511400651465798,
+            "review_precision": 0.07865501407198934,
+            "total_transactions": 44290,
+            "total_fraud": 1449,
+            "total_legitimate": 42841,
+            "approve_count": 36311,
+            "review_count": 6751,
+            "decline_count": 1228
+          },
+          "thresholds": {
+            "low": 0.32839676344867114,
+            "high": 0.7846990537334856
+          }
+        },
+        {
+          "window": 4,
+          "ranking": {
+            "roc_auc": 0.8954615742897067,
+            "pr_auc": 0.5014706968939033,
+            "mean_prob": 0.11571980567779525,
+            "std_prob": 0.17253639287139974,
+            "min_prob": 0.0002290462706376503,
+            "max_prob": 0.9992871067295516
+          },
+          "operational_metrics": {
+            "fraud_auto_decline_recall": 0.482962962962963,
+            "fraud_review_coverage": 0.33555555555555555,
+            "fraud_approved_rate": 0.1814814814814815,
+            "legitimate_auto_decline_rate": 0.019329296693060084,
+            "legitimate_review_rate": 0.1560316721006055,
+            "overall_review_rate": 0.1615037254459246,
+            "fraud_triage_coverage": 0.8185185185185185,
+            "auto_decline_precision": 0.4399460188933873,
+            "review_precision": 0.06333007129875577,
+            "total_transactions": 44290,
+            "total_fraud": 1350,
+            "total_legitimate": 42940,
+            "approve_count": 35655,
+            "review_count": 7153,
+            "decline_count": 1482
+          },
+          "thresholds": {
+            "low": 0.16411599660715245,
+            "high": 0.601640102973863
+          }
+        }
+      ],
+      "summary": {
+        "mean_pr_auc": 0.4936171399220365,
+        "worst_pr_auc": 0.3985204441199389,
+        "mean_roc_auc": 0.8946212287242732,
+        "mean_triage": 0.789586289773354,
+        "worst_triage": 0.748792270531401,
+        "mean_review": 0.1497177692481373,
+        "max_legitimate_decline": 0.02207656996829303,
+        "constraints_satisfied": 1,
+        "windows": 4,
+        "constraint_definition": {
+          "min_triage": 0.8,
+          "max_review": 0.2,
+          "max_legitimate_decline": 0.02
+        }
+      }
+    }
+  },
+  "final_test_rows_used": 0
+}

@@ -1,7 +1,7 @@
 [project]
 name = "fraud-detection"
 version = "1.0.0"
-description = "Tiered fraud detection system for IEEE-CIS dataset"
+description = "Leakage-aware fraud detection and operational decisioning on IEEE-CIS"
 readme = "README.md"
 requires-python = "==3.11.*"
 dependencies = [
